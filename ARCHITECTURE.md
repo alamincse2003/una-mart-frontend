@@ -19,41 +19,46 @@ WHAT it is (pages, data, API).
 
 ## Repo layout
 
-Monorepo, two apps:
+**Current state (Phase 1, frontend-only): flat single Next.js app**, not yet
+the monorepo below — there is no `apps/web/` split while the NestJS backend
+doesn't exist. The move to the full monorepo happens when the `api` app is
+started (Phase 2), not before.
+
+```
+una-mart-frontend/                (this repo, root of the Next.js app)
+├── app/
+│   ├── (customer)/                route group — public storefront
+│   │   ├── page.tsx
+│   │   ├── category/[slug]/
+│   │   ├── product/[slug]/
+│   │   ├── cart/
+│   │   ├── checkout/              not built yet
+│   │   └── account/               not built yet
+│   ├── (admin)/                   route group — admin panel, not built yet
+│   └── api/                       fake data lives here in Phase 1
+│       ├── products/route.ts
+│       ├── products/[slug]/route.ts
+│       ├── categories/route.ts
+│       └── cart/route.ts, cart/items/route.ts, cart/items/[id]/route.ts
+├── components/
+│   ├── ui/                        buttons, inputs, cards — design-token driven
+│   └── customer/
+├── lib/
+│   ├── api-client.ts               single place all fetch calls go through
+│   ├── types.ts                    shared types matching SYSTEM_DESIGN.md
+│   ├── cart-context.tsx            real cart state (React context)
+│   ├── fake-data.ts, fake-cart-store.ts   Phase 1 in-memory data
+│   └── session.ts                  cookie-based session id for the fake cart
+└── app/globals.css                 navy/coral design tokens (Tailwind v4 @theme)
+```
+
+### Target state (once Phase 2's NestJS backend starts)
 
 ```
 una-mart/
 ├── apps/
-│   ├── web/                      Next.js frontend
-│   │   ├── app/
-│   │   │   ├── (customer)/       route group — public storefront
-│   │   │   │   ├── page.tsx
-│   │   │   │   ├── category/[slug]/
-│   │   │   │   ├── product/[slug]/
-│   │   │   │   ├── cart/
-│   │   │   │   ├── checkout/
-│   │   │   │   └── account/
-│   │   │   ├── (seller)/         route group — empty until Phase 2
-│   │   │   ├── (admin)/          route group — admin panel
-│   │   │   │   ├── dashboard/
-│   │   │   │   ├── products/
-│   │   │   │   ├── orders/
-│   │   │   │   └── categories/
-│   │   │   └── api/              fake data lives here in Phase 1
-│   │   │       ├── products/route.ts
-│   │   │       ├── categories/route.ts
-│   │   │       └── orders/route.ts
-│   │   ├── components/
-│   │   │   ├── ui/               buttons, inputs, cards — design-token driven
-│   │   │   ├── customer/
-│   │   │   └── admin/
-│   │   ├── lib/
-│   │   │   ├── api-client.ts     single place all fetch calls go through
-│   │   │   └── types.ts          shared types matching SYSTEM_DESIGN.md
-│   │   └── styles/
-│   │       └── tokens.css        navy/coral design tokens
-│   │
-│   └── api/                      NestJS backend (built in later phase)
+│   ├── web/                      this app, moved here as-is
+│   └── api/                      NestJS backend
 │       └── src/
 │           ├── products/
 │           ├── categories/
@@ -103,7 +108,7 @@ day one, so this swap changes zero component code.
 - One component = one file. Co-locate a component's types with it unless
   shared (then goes in `lib/types.ts` or `packages/shared-types`).
 - Tailwind classes only — no separate CSS files per component except
-  `styles/tokens.css` for the root design tokens.
+  `app/globals.css` for the root design tokens (Tailwind v4 `@theme`).
 - NestJS modules mirror the entities in SYSTEM_DESIGN.md: `products/`,
   `orders/`, `categories/`, `auth/` — one module per bounded concern.
 - Auth checks belong in NestJS guards (backend), never trust a frontend

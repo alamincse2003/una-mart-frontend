@@ -1,0 +1,153 @@
+// In-memory fake data for Phase 1. Lives behind /app/api/*, never imported
+// directly by components — see CLAUDE.md's frontend-first workflow rules.
+import type { Category, Product } from "./types";
+
+// Real product photos already in public/products — swap for Cloudinary
+// URLs once the catalog is real.
+const IMAGE_HEADPHONES = "/products/image1.webp";
+const IMAGE_MOUSE = "/products/image2.webp";
+const IMAGE_SMARTWATCH = "/products/image3.webp";
+const IMAGE_EARBUDS = "/products/image4.webp";
+const IMAGE_POWERBANK = "/products/image5.webp";
+
+export const categories: Category[] = [
+  { id: "cat-gadgets", name: "Gadgets", slug: "gadgets", parentId: null },
+  { id: "cat-groceries", name: "Groceries", slug: "groceries", parentId: null },
+  {
+    id: "cat-audio",
+    name: "Audio",
+    slug: "audio",
+    parentId: "cat-gadgets",
+  },
+  {
+    id: "cat-staples",
+    name: "Staples",
+    slug: "staples",
+    parentId: "cat-groceries",
+  },
+];
+
+export const products: Product[] = [
+  {
+    id: "prod-1",
+    name: "Wireless Earbuds Pro",
+    slug: "wireless-earbuds-pro",
+    description:
+      "Active noise cancellation, 30-hour battery life, USB-C fast charging.",
+    price: 3490,
+    stockQty: 42,
+    categoryId: "cat-audio",
+    images: [IMAGE_EARBUDS],
+    status: "active",
+    createdAt: "2026-01-10T00:00:00.000Z",
+  },
+  {
+    id: "prod-2",
+    name: "Over-Ear ANC Headphones",
+    slug: "over-ear-anc-headphones",
+    description:
+      "Active noise cancellation, plush ear cushions, 40-hour battery life.",
+    price: 2990,
+    stockQty: 55,
+    categoryId: "cat-audio",
+    images: [IMAGE_HEADPHONES],
+    status: "active",
+    createdAt: "2026-01-12T00:00:00.000Z",
+  },
+  {
+    id: "prod-3",
+    name: "Smart Watch SE",
+    slug: "smart-watch-se",
+    description: "Heart rate tracking, sleep monitoring, 7-day battery.",
+    price: 5990,
+    stockQty: 18,
+    categoryId: "cat-gadgets",
+    images: [IMAGE_SMARTWATCH],
+    status: "active",
+    createdAt: "2026-01-14T00:00:00.000Z",
+  },
+  {
+    id: "prod-4",
+    name: "Wireless Mouse",
+    slug: "wireless-mouse",
+    description: "Ergonomic wireless mouse, adjustable DPI, silent clicks.",
+    price: 890,
+    stockQty: 120,
+    categoryId: "cat-gadgets",
+    images: [IMAGE_MOUSE],
+    status: "active",
+    createdAt: "2026-01-15T00:00:00.000Z",
+  },
+  {
+    id: "prod-5",
+    name: "Power Bank 20000mAh",
+    slug: "power-bank-20000mah",
+    description: "High-capacity power bank with fast-charge pass-through.",
+    price: 2290,
+    stockQty: 3,
+    categoryId: "cat-gadgets",
+    images: [IMAGE_POWERBANK],
+    status: "active",
+    createdAt: "2026-01-16T00:00:00.000Z",
+  },
+  {
+    id: "prod-6",
+    name: "Premium Basmati Rice (5kg)",
+    slug: "premium-basmati-rice-5kg",
+    description: "Aged basmati rice, long grain, sourced from local mills.",
+    price: 750,
+    stockQty: 200,
+    categoryId: "cat-staples",
+    images: [IMAGE_HEADPHONES], // no real rice photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-01-18T00:00:00.000Z",
+  },
+  {
+    id: "prod-7",
+    name: "Soybean Cooking Oil (5L)",
+    slug: "soybean-cooking-oil-5l",
+    description: "Refined soybean oil, fortified with vitamin A and D.",
+    price: 890,
+    stockQty: 150,
+    categoryId: "cat-staples",
+    images: [IMAGE_MOUSE], // no real oil photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-01-19T00:00:00.000Z",
+  },
+  {
+    id: "prod-8",
+    name: "Red Lentils (1kg)",
+    slug: "red-lentils-1kg",
+    description: "Split red lentils (masoor dal), cleaned and sorted.",
+    price: 140,
+    stockQty: 300,
+    categoryId: "cat-staples",
+    images: [IMAGE_SMARTWATCH], // no real lentils photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-01-20T00:00:00.000Z",
+  },
+  {
+    id: "prod-9",
+    name: "Sunflower Cooking Oil (2L)",
+    slug: "sunflower-cooking-oil-2l",
+    description: "Light, refined sunflower oil for everyday cooking.",
+    price: 420,
+    stockQty: 0,
+    categoryId: "cat-groceries",
+    images: [IMAGE_EARBUDS], // no real oil photo yet — reusing gadget photo
+    status: "out_of_stock",
+    createdAt: "2026-01-21T00:00:00.000Z",
+  },
+  {
+    id: "prod-10",
+    name: "USB-C to Lightning Cable",
+    slug: "usb-c-to-lightning-cable",
+    description: "1.5m braided cable, supports fast charging and data sync.",
+    price: 590,
+    stockQty: 80,
+    categoryId: "cat-gadgets",
+    images: [IMAGE_POWERBANK], // no real cable photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-01-22T00:00:00.000Z",
+  },
+];
