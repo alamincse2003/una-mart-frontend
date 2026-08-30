@@ -34,12 +34,17 @@ export const products: Product[] = [
     slug: "wireless-earbuds-pro",
     description:
       "Active noise cancellation, 30-hour battery life, USB-C fast charging.",
-    price: 3490,
+    price: 2990,
+    originalPrice: 3490,
     stockQty: 42,
     categoryId: "cat-audio",
     images: [IMAGE_EARBUDS],
     status: "active",
     createdAt: "2026-01-10T00:00:00.000Z",
+    rating: 4.6,
+    reviewCount: 214,
+    badge: "sale",
+    freeDelivery: true,
   },
   {
     id: "prod-2",
@@ -53,6 +58,10 @@ export const products: Product[] = [
     images: [IMAGE_HEADPHONES],
     status: "active",
     createdAt: "2026-01-12T00:00:00.000Z",
+    rating: 4.8,
+    reviewCount: 320,
+    badge: "best",
+    freeDelivery: true,
   },
   {
     id: "prod-3",
@@ -65,6 +74,9 @@ export const products: Product[] = [
     images: [IMAGE_SMARTWATCH],
     status: "active",
     createdAt: "2026-01-14T00:00:00.000Z",
+    rating: 4.5,
+    reviewCount: 96,
+    badge: "new",
   },
   {
     id: "prod-4",
@@ -77,18 +89,24 @@ export const products: Product[] = [
     images: [IMAGE_MOUSE],
     status: "active",
     createdAt: "2026-01-15T00:00:00.000Z",
+    rating: 4.3,
+    reviewCount: 58,
   },
   {
     id: "prod-5",
     name: "Power Bank 20000mAh",
     slug: "power-bank-20000mah",
     description: "High-capacity power bank with fast-charge pass-through.",
-    price: 2290,
+    price: 1990,
+    originalPrice: 2290,
     stockQty: 3,
     categoryId: "cat-gadgets",
     images: [IMAGE_POWERBANK],
     status: "active",
     createdAt: "2026-01-16T00:00:00.000Z",
+    rating: 4.4,
+    reviewCount: 132,
+    badge: "sale",
   },
   {
     id: "prod-6",
@@ -101,6 +119,10 @@ export const products: Product[] = [
     images: [IMAGE_HEADPHONES], // no real rice photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-18T00:00:00.000Z",
+    rating: 4.7,
+    reviewCount: 88,
+    badge: "new",
+    freeDelivery: true,
   },
   {
     id: "prod-7",
@@ -113,6 +135,9 @@ export const products: Product[] = [
     images: [IMAGE_MOUSE], // no real oil photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-19T00:00:00.000Z",
+    rating: 4.2,
+    reviewCount: 41,
+    freeDelivery: true,
   },
   {
     id: "prod-8",
@@ -125,6 +150,10 @@ export const products: Product[] = [
     images: [IMAGE_SMARTWATCH], // no real lentils photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-20T00:00:00.000Z",
+    rating: 4.5,
+    reviewCount: 65,
+    badge: "best",
+    freeDelivery: true,
   },
   {
     id: "prod-9",
@@ -137,6 +166,8 @@ export const products: Product[] = [
     images: [IMAGE_EARBUDS], // no real oil photo yet — reusing gadget photo
     status: "out_of_stock",
     createdAt: "2026-01-21T00:00:00.000Z",
+    rating: 4.1,
+    reviewCount: 27,
   },
   {
     id: "prod-10",
@@ -149,5 +180,7 @@ export const products: Product[] = [
     images: [IMAGE_POWERBANK], // no real cable photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-22T00:00:00.000Z",
+    rating: 4.3,
+    reviewCount: 19,
   },
 ];

@@ -68,6 +68,9 @@ schema so migrations aren't destructive later, but aren't used yet.
 - id, name, slug, description, price, stock_qty, category_id, images[],
   status (`active` | `draft` | `out_of_stock`), created_at
 - seller_id (P2, nullable in Phase 1 — defaults to UNA Mart's own store)
+- Phase 1 display fields (optional): rating, review_count, original_price
+  (set only when discounted), badge (`new` | `sale` | `best`, nullable),
+  free_delivery (bool)
 
 ### Category
 - id, name, slug, parent_id (nullable, for subcategories)

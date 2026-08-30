@@ -16,6 +16,8 @@ export interface User {
 
 export type ProductStatus = "active" | "draft" | "out_of_stock";
 
+export type ProductBadge = "new" | "sale" | "best";
+
 export interface Product {
   id: string;
   name: string;
@@ -28,6 +30,13 @@ export interface Product {
   status: ProductStatus;
   createdAt: string;
   sellerId?: string | null; // P2, nullable in Phase 1
+
+  // Phase 1 display fields — optional, drive storefront card/detail UI.
+  rating?: number; // 0-5
+  reviewCount?: number;
+  originalPrice?: number; // present only when the item is discounted
+  badge?: ProductBadge | null;
+  freeDelivery?: boolean;
 }
 
 export interface Category {

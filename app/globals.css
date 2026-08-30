@@ -198,6 +198,21 @@ body {
   font-weight: 500;
 }
 
+/* Homepage marquee — continuous decorative scroll, not an entrance effect,
+   so plain CSS is used instead of GSAP. Track is duplicated in markup;
+   -50% scrolls exactly one copy before looping. */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee-scroll 26s linear infinite;
+}
+
 /* ==========================================================================
    RULES OF THUMB
    --------------------------------------------------------------------------
