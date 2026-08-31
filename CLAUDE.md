@@ -40,11 +40,22 @@ backend. Rules for this phase:
 
 - Fake data must live behind Next.js API routes (e.g.
   `/app/api/products/route.ts`), never hardcoded directly inside components.
-  Components call `/api/products`, not a local JSON import — this is what
-  lets us swap fake data for the real NestJS API later by editing only the
-  route handler, not the components.
+- Client components (anything `"use client"`, e.g. cart actions) call
+  `/api/*` through `lib/api-client.ts`, not a local import — this is what
+  lets us swap fake data for the real NestJS API later by editing only
+  `api-client.ts`'s base URL, not the components.
+- Server components (pages doing SSR data fetching, e.g. the homepage,
+  category page, product page) import the data helpers from
+  `lib/fake-data.ts` directly (`getProducts`, `getCategories`,
+  `getProductBySlug`) instead of going through `api-client.ts`. A server
+  component calling its own `/api/*` route via HTTP is a self-fetch that
+  Vercel's deployment protection (and similar edge auth) can 401 — importing
+  the data functions directly avoids that request entirely. When the real
+  backend is ready, these call sites switch from the `fake-data` import to
+  an authenticated server-side fetch to the NestJS API — expect to touch
+  each server component, not just one config value.
 - Fake data shape must match `SYSTEM_DESIGN.md`'s data model exactly, so the
-  swap to the real API is a one-line change, not a rewrite.
+  swap to the real API stays a small, mechanical change per call site.
 - Cart, login, and checkout state must be real (React state/context), not
   static mockups — only the data source is fake, the behavior is not.
 

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { products } from "@/lib/fake-data";
+import { getProductBySlug } from "@/lib/fake-data";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const product = products.find((p) => p.slug === slug);
+  const product = getProductBySlug(slug);
 
   if (!product) {
     return NextResponse.json({ message: "Product not found" }, { status: 404 });

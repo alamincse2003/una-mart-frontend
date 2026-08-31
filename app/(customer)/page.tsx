@@ -1,14 +1,12 @@
-import { apiClient } from "@/lib/api-client";
+import { getCategories, getProducts } from "@/lib/fake-data";
 import { Hero } from "@/components/customer/Hero";
 import { MarqueeStrip } from "@/components/customer/MarqueeStrip";
 import { CategoryShowcase } from "@/components/customer/CategoryShowcase";
 import { ProductGrid } from "@/components/customer/ProductGrid";
 
 export default async function HomePage() {
-  const [categories, products] = await Promise.all([
-    apiClient.getCategories(),
-    apiClient.getProducts(),
-  ]);
+  const categories = getCategories();
+  const products = getProducts();
 
   return (
     <>

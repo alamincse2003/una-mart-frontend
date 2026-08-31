@@ -1,5 +1,6 @@
-// In-memory fake data for Phase 1. Lives behind /app/api/*, never imported
-// directly by components — see CLAUDE.md's frontend-first workflow rules.
+// In-memory fake data for Phase 1. Client components go through /app/api/*;
+// server components import the helpers below directly (no self-fetch) —
+// see CLAUDE.md's frontend-first workflow rules.
 import type { Category, Product } from "./types";
 
 // Real product photos already in public/products — swap for Cloudinary
@@ -184,3 +185,36 @@ export const products: Product[] = [
     reviewCount: 19,
   },
 ];
+
+export function getProducts(params?: {
+  category?: string;
+  search?: string;
+}): Product[] {
+  let result = products;
+
+  if (params?.category) {
+    const matchedCategory = categories.find((c) => c.slug === params.category);
+    result = result.filter(
+      (p) => matchedCategory && p.categoryId === matchedCategory.id
+    );
+  }
+
+  if (params?.search) {
+    const term = params.search.toLowerCase();
+    result = result.filter(
+      (p) =>
+        p.name.toLowerCase().includes(term) ||
+        p.description.toLowerCase().includes(term)
+    );
+  }
+
+  return result;
+}
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug);
+}
+
+export function getCategories(): Category[] {
+  return categories;
+}

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { apiClient } from "@/lib/api-client";
+import { getProductBySlug, getProducts } from "@/lib/fake-data";
 import { StarRating } from "@/components/ui/StarRating";
 import { ProductGrid } from "@/components/customer/ProductGrid";
 import { ProductPurchasePanel } from "@/components/customer/ProductPurchasePanel";
@@ -13,10 +13,8 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  let product;
-  try {
-    product = await apiClient.getProduct(slug);
-  } catch {
+  const product = getProductBySlug(slug);
+  if (!product) {
     notFound();
   }
 
@@ -27,7 +25,7 @@ export default async function ProductPage({
       ? Math.round(100 - (product.price / product.originalPrice) * 100)
       : 0;
 
-  const allProducts = await apiClient.getProducts({});
+  const allProducts = getProducts();
   const related = allProducts
     .filter(
       (p) => p.id !== product.id && p.categoryId === product.categoryId

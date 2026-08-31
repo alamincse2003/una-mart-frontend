@@ -1,4 +1,4 @@
-import { apiClient } from "@/lib/api-client";
+import { getCategories, getProducts } from "@/lib/fake-data";
 import { ProductGrid } from "@/components/customer/ProductGrid";
 
 export default async function CategoryPage({
@@ -7,10 +7,8 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [categories, products] = await Promise.all([
-    apiClient.getCategories(),
-    apiClient.getProducts({ category: slug }),
-  ]);
+  const categories = getCategories();
+  const products = getProducts({ category: slug });
 
   const category = categories.find((c) => c.slug === slug);
 
