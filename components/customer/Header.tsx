@@ -29,8 +29,8 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-neutral-0/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3.5 sm:px-6">
+    <header className="sticky top-0 z-50 bg-neutral-0/80 shadow-sm backdrop-blur-md">
+      <div className="mx-auto grid max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-3.5 sm:px-6">
         <Link
           href="/"
           className="shrink-0 text-2xl font-extrabold tracking-tight text-navy-800"
@@ -38,49 +38,35 @@ export function Header() {
           UNA <span className="text-coral-600">Mart</span>
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-          {categories.map((category) => {
-            const href = `/category/${category.slug}`;
-            const active = pathname === href;
-            return (
-              <Link
-                key={category.id}
-                href={href}
-                className={`whitespace-nowrap rounded-md px-3.5 py-2 text-sm font-semibold transition-colors ${
-                  active
-                    ? "bg-navy-800 text-neutral-0"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-navy-800"
-                }`}
-              >
-                {category.name}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="ml-auto hidden items-center rounded-md border border-neutral-200 bg-neutral-50 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-coral-400 focus-within:bg-neutral-0 focus-within:ring-4 focus-within:ring-coral-400/15 md:flex md:w-56 lg:ml-0 lg:w-64">
-          <SearchIcon width={16} height={16} className="text-neutral-400" />
+        <div className="mx-auto hidden w-full max-w-md items-center rounded-pill border border-neutral-200 bg-neutral-0 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-coral-400 focus-within:ring-4 focus-within:ring-coral-400/15 md:flex">
           <input
             type="text"
-            placeholder="Search…"
+            placeholder="Search for products…"
             className="w-full flex-1 bg-transparent px-3 py-1 text-sm outline-none placeholder:text-neutral-400"
           />
+          <button
+            type="button"
+            aria-label="Search"
+            className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-pill bg-navy-800 text-neutral-0 transition-colors hover:bg-navy-600"
+          >
+            <SearchIcon width={16} height={16} />
+          </button>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 md:ml-4">
+        <div className="flex shrink-0 items-center justify-self-end gap-1">
           <Link
             href="/login"
             aria-label="Login"
-            className="hidden h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-navy-800 sm:flex"
+            className="hidden h-10 items-center gap-1.5 rounded-pill border border-neutral-200 px-4 text-sm font-semibold text-navy-800 transition-colors hover:bg-navy-800 hover:text-neutral-0 sm:flex"
           >
-            <UserIcon width={18} height={18} />
+            <UserIcon width={16} height={16} />
             Login
           </Link>
 
           <button
             type="button"
             aria-label="Wishlist"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-coral-600"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-neutral-600 transition-all hover:bg-neutral-0 hover:text-coral-600 hover:shadow-md"
           >
             <HeartIcon />
           </button>
@@ -88,12 +74,11 @@ export function Header() {
           <Link
             href="/cart"
             aria-label="Cart"
-            className="relative flex h-10 items-center gap-2 rounded-md bg-navy-800 px-4 text-sm font-semibold text-neutral-0 transition-colors hover:bg-navy-600"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-neutral-600 transition-all hover:bg-neutral-0 hover:text-navy-800 hover:shadow-md"
           >
-            <CartIcon width={18} height={18} />
-            <span className="hidden sm:inline">Cart</span>
+            <CartIcon width={20} height={20} />
             {itemCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-neutral-0 bg-coral-600 px-1 text-[10px] font-bold text-neutral-0">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-neutral-0 bg-coral-600 px-1 text-[10px] font-bold text-neutral-0">
                 {itemCount}
               </span>
             )}
@@ -103,12 +88,40 @@ export function Header() {
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileNavOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-navy-800 transition-colors hover:bg-neutral-100 lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-navy-800 transition-all hover:bg-neutral-0 hover:shadow-md lg:hidden"
           >
             <MenuIcon />
           </button>
         </div>
       </div>
+
+      <nav className="hidden border-t border-neutral-100 lg:block">
+        <div className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-2 sm:px-6">
+          {categories.map((category) => {
+            const href = `/category/${category.slug}`;
+            const active = pathname === href;
+            return (
+              <Link
+                key={category.id}
+                href={href}
+                className={`whitespace-nowrap rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
+                  active
+                    ? "bg-navy-800 text-neutral-0"
+                    : "text-neutral-600 hover:bg-navy-800 hover:text-neutral-0"
+                }`}
+              >
+                {category.name}
+              </Link>
+            );
+          })}
+          <Link
+            href="/#deals"
+            className="ml-1 whitespace-nowrap rounded-pill px-4 py-2 text-sm font-bold text-coral-600 transition-colors hover:bg-coral-600 hover:text-neutral-0"
+          >
+            Deals
+          </Link>
+        </div>
+      </nav>
 
       <MobileNav
         open={mobileNavOpen}
@@ -213,16 +226,23 @@ function MobileNav({
                 key={category.id}
                 href={href}
                 onClick={onClose}
-                className={`rounded-md px-3 py-2.5 text-sm font-semibold transition-colors ${
+                className={`rounded-pill px-4 py-2.5 text-sm font-semibold transition-colors ${
                   active
                     ? "bg-navy-800 text-neutral-0"
-                    : "text-neutral-700 hover:bg-neutral-100"
+                    : "text-neutral-700 hover:bg-navy-800 hover:text-neutral-0"
                 }`}
               >
                 {category.name}
               </Link>
             );
           })}
+          <Link
+            href="/#deals"
+            onClick={onClose}
+            className="rounded-pill px-4 py-2.5 text-sm font-bold text-coral-600 transition-colors hover:bg-coral-600 hover:text-neutral-0"
+          >
+            Deals
+          </Link>
         </nav>
 
         <div className="mt-auto flex flex-col gap-1 border-t border-neutral-200 px-5 py-4">
