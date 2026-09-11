@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { apiClient } from "@/lib/api-client";
+import { useMemo, useState } from "react";
 import type { Category, Product } from "@/lib/types";
 import { MenuIcon } from "@/components/ui/icons";
 import { TopBar } from "./TopBar";
@@ -17,26 +16,32 @@ import { MegaMenu } from "./MegaMenu";
 // hamburger button opens MobileNav instead — see that file for the
 // mobile menu's own layout and animation.
 //
+// categories/products are passed in as props, fetched server-side by
+// CustomerLayout (app/(customer)/layout.tsx) via lib/fake-data.ts — this
+// data doesn't need client-side fetching (no auth, no per-user state), so
+// keeping it server-fetched avoids a whole class of client-fetch failure
+// (e.g. a self-fetch that gets blocked by hosting-level auth) for data
+// that's the same for every visitor anyway.
+//
 // The MegaMenu is rendered here (not inside MainNav) because it needs to
 // span the full header width, not just the width of the nav links — see
 // MegaMenu.tsx for the panel itself and MainNav.tsx for how hover events
 // reach `hoveredCategoryId` below.
-export function Header() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+export function Header({
+  categories,
+  products,
+}: {
+  categories: Category[];
+  products: Product[];
+}) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(
-    null,
+    null
   );
-
-  useEffect(() => {
-    apiClient.getCategories().then(setCategories);
-    apiClient.getProducts().then(setProducts);
-  }, []);
 
   const topLevelCategories = useMemo(
     () => categories.filter((c) => !c.parentId),
-    [categories],
+    [categories]
   );
 
   const subcategoriesByParent = useMemo(() => {

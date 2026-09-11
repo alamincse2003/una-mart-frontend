@@ -4,12 +4,19 @@ import { Mail, MapPin, Phone } from "lucide-react";
 // Social brand logos aren't in lucide-react (generic icons only), so these
 // are small hand-written SVGs — same approach used before the header's
 // icon set migrated to lucide-react. No new dependency for 4 icons.
-function SocialIcon({
-  name,
-}: {
-  name: "facebook" | "instagram" | "x" | "youtube";
-}) {
-  const paths: Record<typeof name, React.ReactNode> = {
+function SocialIcon({ name }: { name: "facebook" | "instagram" | "whatsapp" }) {
+  if (name === "whatsapp") {
+    // WhatsApp's glyph is filled, not stroke-based like the others — drawn
+    // as its own solid-fill svg rather than forcing it into the shared
+    // stroke style below.
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.04 2c-5.52 0-10 4.48-10 10 0 1.77.46 3.45 1.32 4.95L2 22l5.2-1.36a9.96 9.96 0 0 0 4.84 1.23h.01c5.52 0 10-4.48 10-10s-4.48-9.87-10.01-9.87zm5.87 14.2c-.25.7-1.45 1.37-2 1.46-.51.08-1.15.11-1.85-.12-.43-.14-.98-.32-1.68-.63-2.96-1.28-4.89-4.25-5.04-4.45-.15-.2-1.21-1.6-1.21-3.06 0-1.45.77-2.17 1.04-2.47.27-.3.6-.37.8-.37s.4 0 .58.01c.19.01.44-.07.68.52.25.6.86 2.07.93 2.22.08.15.13.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.26 1.64 2.04 1.13 1 2.07 1.32 2.38 1.47.31.15.48.13.66-.08.18-.2.77-.89.97-1.2.2-.3.4-.25.68-.15.27.1 1.75.83 2.05 .98.3.15.5.22.57.35.08.13.08.72-.17 1.42z" />
+      </svg>
+    );
+  }
+
+  const paths: Record<"facebook" | "instagram", React.ReactNode> = {
     facebook: (
       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
     ),
@@ -18,18 +25,6 @@ function SocialIcon({
         <rect x="2" y="2" width="20" height="20" rx="5" />
         <circle cx="12" cy="12" r="4" />
         <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-      </>
-    ),
-    x: (
-      <>
-        <line x1="18" y1="6" x2="6" y2="18" />
-        <line x1="6" y1="6" x2="18" y2="18" />
-      </>
-    ),
-    youtube: (
-      <>
-        <path d="M22 8.5s-.2-1.6-.8-2.3c-.8-.8-1.7-.8-2.1-.9C16.3 5 12 5 12 5s-4.3 0-7.1.3c-.4 0-1.3.1-2.1.9C2.2 6.9 2 8.5 2 8.5S1.8 10.4 1.8 12.3v1.4c0 1.9.2 3.8.2 3.8s.2 1.6.8 2.3c.8.9 1.9.8 2.4.9 1.7.2 7.3.3 7.3.3s4.3 0 7.1-.3c.4 0 1.3-.1 2.1-.9.6-.7.8-2.3.8-2.3s.2-1.9.2-3.8v-1.4c0-1.9-.2-3.8-.2-3.8z" />
-        <polygon points="10 15 15 12 10 9" fill="currentColor" stroke="none" />
       </>
     ),
   };
@@ -50,9 +45,10 @@ function SocialIcon({
   );
 }
 
-const SUPPORT_PHONE = "+880 1XXX-XXXXXX";
-const SUPPORT_EMAIL = "support@unamart.com";
-const SUPPORT_ADDRESS = "House 12, Road 3, Block A, Mirpur 12, Dhaka 1216";
+const SUPPORT_PHONE = "+880 1927-967894";
+const SUPPORT_EMAIL = "info.unamartbd@gmail.com";
+const SUPPORT_ADDRESS = "Gulshan-2, Dhaka Bangladesh";
+const WHATSAPP_NUMBER = "8801927967894";
 
 const LINK_COLUMNS: { title: string; links: string[] }[] = [
   { title: "Company", links: ["About Us", "Shop", "FAQ", "Contact Us"] },
@@ -69,11 +65,16 @@ const LINK_COLUMNS: { title: string; links: string[] }[] = [
   },
 ];
 
-const SOCIAL_LINKS: { name: "facebook" | "instagram" | "x" | "youtube" }[] = [
-  { name: "facebook" },
-  { name: "instagram" },
-  { name: "x" },
-  { name: "youtube" },
+const SOCIAL_LINKS: {
+  name: "facebook" | "instagram" | "whatsapp";
+  href: string;
+}[] = [
+  { name: "facebook", href: "https://www.facebook.com/share/1BCNGEJxxR/" },
+  {
+    name: "instagram",
+    href: "https://www.instagram.com/unamart_bd?stkn=MWtkZzBjdWs3N2puag==",
+  },
+  { name: "whatsapp", href: `https://wa.me/${WHATSAPP_NUMBER}` },
 ];
 
 export function Footer() {
@@ -152,7 +153,9 @@ export function Footer() {
               {SOCIAL_LINKS.map((social) => (
                 <a
                   key={social.name}
-                  href="#"
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={social.name}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-800 text-navy-100 transition-colors hover:bg-coral-400 hover:text-navy-900"
                 >

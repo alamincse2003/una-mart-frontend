@@ -3,8 +3,8 @@
 // Hidden on small screens; the main header carries all critical actions.
 import { Mail, Phone } from "lucide-react";
 
-const SUPPORT_PHONE = "+880 1XXX-XXXXXX";
-const SUPPORT_EMAIL = "support@unamart.com";
+const SUPPORT_PHONE = "+880 1927-967894";
+const SUPPORT_EMAIL = "info.unamartbd@gmail.com";
 
 export function TopBar() {
   return (
