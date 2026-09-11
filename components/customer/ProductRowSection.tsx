@@ -13,7 +13,7 @@ export function ProductRowSection({
   if (products.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <p className="text-xs font-bold uppercase tracking-wider text-coral-600">
         {eyebrow}
       </p>

@@ -1,6 +1,6 @@
 export function NewsletterSection() {
   return (
-    <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
       <div className="rounded-lg bg-navy-800 px-6 py-12 text-center sm:px-10">
         <h2 className="text-2xl font-bold text-neutral-0">
           Get exclusive offers

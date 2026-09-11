@@ -23,7 +23,7 @@ const REVIEWS = [
 
 export function ReviewsSection() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <p className="text-xs font-bold uppercase tracking-wider text-coral-600">
         Trusted by thousands
       </p>

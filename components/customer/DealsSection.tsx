@@ -7,7 +7,7 @@ export function DealsSection({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
   return (
-    <section id="deals" className="mx-auto max-w-6xl scroll-mt-32 px-4 py-10 sm:px-6">
+    <section id="deals" className="mx-auto max-w-7xl scroll-mt-32 px-4 py-10 sm:px-6">
       <div className="flex items-end justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-coral-600">

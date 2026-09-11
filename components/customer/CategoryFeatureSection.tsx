@@ -20,7 +20,7 @@ export function CategoryFeatureSection({
   if (products.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div
         className={`relative overflow-hidden rounded-lg bg-linear-to-br p-8 sm:p-10 ${
           GRADIENTS[index % GRADIENTS.length]

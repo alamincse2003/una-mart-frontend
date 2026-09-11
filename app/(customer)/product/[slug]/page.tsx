@@ -34,7 +34,7 @@ export default async function ProductPage({
 
   return (
     <>
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:grid-cols-2 sm:px-6">
+      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:grid-cols-2 sm:px-6">
         <div>
           <div className="relative aspect-square rounded-lg bg-neutral-50">
             <Image
@@ -151,7 +151,7 @@ export default async function ProductPage({
       </section>
 
       {related.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
           <h2 className="text-xl font-semibold text-neutral-800">
             You may also like
           </h2>

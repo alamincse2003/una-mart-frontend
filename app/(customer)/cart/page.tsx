@@ -41,7 +41,7 @@ export default function CartPage() {
   }, 0);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-semibold text-neutral-800">Your cart</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">

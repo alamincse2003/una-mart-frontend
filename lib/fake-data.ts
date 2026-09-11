@@ -14,16 +14,45 @@ const IMAGE_POWERBANK = "/products/image5.webp";
 export const categories: Category[] = [
   { id: "cat-gadgets", name: "Gadgets", slug: "gadgets", parentId: null },
   { id: "cat-groceries", name: "Groceries", slug: "groceries", parentId: null },
+
+  // Gadgets subcategories
+  { id: "cat-audio", name: "Audio", slug: "audio", parentId: "cat-gadgets" },
   {
-    id: "cat-audio",
-    name: "Audio",
-    slug: "audio",
+    id: "cat-wearables",
+    name: "Wearables",
+    slug: "wearables",
     parentId: "cat-gadgets",
   },
+  {
+    id: "cat-accessories",
+    name: "Accessories",
+    slug: "accessories",
+    parentId: "cat-gadgets",
+  },
+  {
+    id: "cat-chargers",
+    name: "Chargers & Cables",
+    slug: "chargers-cables",
+    parentId: "cat-gadgets",
+  },
+
+  // Groceries subcategories
   {
     id: "cat-staples",
     name: "Staples",
     slug: "staples",
+    parentId: "cat-groceries",
+  },
+  {
+    id: "cat-cooking-oil",
+    name: "Cooking Oil",
+    slug: "cooking-oil",
+    parentId: "cat-groceries",
+  },
+  {
+    id: "cat-snacks",
+    name: "Snacks & Beverages",
+    slug: "snacks-beverages",
     parentId: "cat-groceries",
   },
 ];
@@ -71,7 +100,7 @@ export const products: Product[] = [
     description: "Heart rate tracking, sleep monitoring, 7-day battery.",
     price: 5990,
     stockQty: 18,
-    categoryId: "cat-gadgets",
+    categoryId: "cat-wearables",
     images: [IMAGE_SMARTWATCH],
     status: "active",
     createdAt: "2026-01-14T00:00:00.000Z",
@@ -86,7 +115,7 @@ export const products: Product[] = [
     description: "Ergonomic wireless mouse, adjustable DPI, silent clicks.",
     price: 890,
     stockQty: 120,
-    categoryId: "cat-gadgets",
+    categoryId: "cat-accessories",
     images: [IMAGE_MOUSE],
     status: "active",
     createdAt: "2026-01-15T00:00:00.000Z",
@@ -101,7 +130,7 @@ export const products: Product[] = [
     price: 1990,
     originalPrice: 2290,
     stockQty: 3,
-    categoryId: "cat-gadgets",
+    categoryId: "cat-chargers",
     images: [IMAGE_POWERBANK],
     status: "active",
     createdAt: "2026-01-16T00:00:00.000Z",
@@ -132,7 +161,7 @@ export const products: Product[] = [
     description: "Refined soybean oil, fortified with vitamin A and D.",
     price: 890,
     stockQty: 150,
-    categoryId: "cat-staples",
+    categoryId: "cat-cooking-oil",
     images: [IMAGE_MOUSE], // no real oil photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-19T00:00:00.000Z",
@@ -163,7 +192,7 @@ export const products: Product[] = [
     description: "Light, refined sunflower oil for everyday cooking.",
     price: 420,
     stockQty: 0,
-    categoryId: "cat-groceries",
+    categoryId: "cat-cooking-oil",
     images: [IMAGE_EARBUDS], // no real oil photo yet — reusing gadget photo
     status: "out_of_stock",
     createdAt: "2026-01-21T00:00:00.000Z",
@@ -177,12 +206,26 @@ export const products: Product[] = [
     description: "1.5m braided cable, supports fast charging and data sync.",
     price: 590,
     stockQty: 80,
-    categoryId: "cat-gadgets",
+    categoryId: "cat-chargers",
     images: [IMAGE_POWERBANK], // no real cable photo yet — reusing gadget photo
     status: "active",
     createdAt: "2026-01-22T00:00:00.000Z",
     rating: 4.3,
     reviewCount: 19,
+  },
+  {
+    id: "prod-11",
+    name: "Assorted Biscuits Pack",
+    slug: "assorted-biscuits-pack",
+    description: "A mixed pack of tea-time biscuits, resealable box of 12.",
+    price: 320,
+    stockQty: 140,
+    categoryId: "cat-snacks",
+    images: [IMAGE_MOUSE], // no real snacks photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-01-23T00:00:00.000Z",
+    rating: 4.4,
+    reviewCount: 34,
   },
 ];
 

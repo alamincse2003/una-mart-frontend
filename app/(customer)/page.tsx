@@ -1,61 +1,55 @@
 import { getCategories, getProducts } from "@/lib/fake-data";
 import { Hero } from "@/components/customer/Hero";
 import { CategoryShowcase } from "@/components/customer/CategoryShowcase";
-import { CategoryFeatureSection } from "@/components/customer/CategoryFeatureSection";
-import { DealsSection } from "@/components/customer/DealsSection";
-import { ProductRowSection } from "@/components/customer/ProductRowSection";
-import { ReviewsSection } from "@/components/customer/ReviewsSection";
-import { NewsletterSection } from "@/components/customer/NewsletterSection";
+import { SubcategoryBento } from "@/components/customer/SubcategoryBento";
+import { BestSellingProduct } from "@/components/customer/BestSellingProduct";
+import { NewArrivalProducts } from "@/components/customer/NewArrivalProducts";
+import { WhyChooseUs } from "@/components/customer/WhyChooseUs";
+import { TestimonialSection } from "@/components/customer/TestimonialSection";
+import { FeatureHighlight } from "@/components/customer/FeatureHighlight";
+import { PromoBanner } from "@/components/customer/PromoBanner";
 
 export default async function HomePage() {
   const categories = getCategories();
   const products = getProducts();
-  const topLevelCategories = categories.filter((c) => !c.parentId);
-
-  function productsInCategoryTree(categoryId: string) {
-    const descendantIds = new Set(
-      categories
-        .filter((c) => c.id === categoryId || c.parentId === categoryId)
-        .map((c) => c.id)
-    );
-    return products.filter((p) => descendantIds.has(p.categoryId));
-  }
-
-  const dealProducts = products.filter(
-    (p) => p.originalPrice && p.originalPrice > p.price
-  );
   const bestSellers = products.filter((p) => p.badge === "best");
-  const trending = [...products]
-    .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
-    .slice(0, 4);
+  const newArrivals = products.filter((p) => p.badge === "new");
+  const gadgetsSubcategories = categories.filter(
+    (c) => c.parentId === "cat-gadgets",
+  );
 
   return (
     <>
       <Hero />
       <CategoryShowcase categories={categories} />
-
-      {topLevelCategories.map((category, i) => (
-        <CategoryFeatureSection
-          key={category.id}
-          category={category}
-          products={productsInCategoryTree(category.id)}
-          index={i}
-        />
-      ))}
-
-      <DealsSection products={dealProducts} />
-      <ProductRowSection
-        eyebrow="Fan favorites"
-        title="Best sellers"
-        products={bestSellers}
+      <BestSellingProduct products={bestSellers} />
+      <SubcategoryBento subcategories={gadgetsSubcategories} />
+      <NewArrivalProducts products={newArrivals} />
+      <WhyChooseUs />
+      <TestimonialSection />
+      <FeatureHighlight
+        image="/products/image5.webp"
+        title="Trusted Gadgets, Real Value"
+        description="From wireless earbuds to power banks, our gadget range is picked for everyday reliability at fair prices — with Cash on Delivery, bKash and Nagad accepted on every order."
+        ctaLabel="Shop Gadgets"
+        ctaHref="/category/gadgets"
       />
-      <ProductRowSection
-        eyebrow="Right now"
-        title="Trending products"
-        products={trending}
+      <FeatureHighlight
+        image="/products/image1.webp"
+        title="Also Available in Groceries"
+        description="From cooking oil to daily staples, we're stocking essentials alongside gadgets so your order doesn't need a second trip. Same trusted delivery and payment options across every category."
+        ctaLabel="Shop Groceries"
+        ctaHref="/category/groceries"
+        imageSide="right"
       />
-      <ReviewsSection />
-      <NewsletterSection />
+      <PromoBanner
+        image="/products/image3.webp"
+        title="Shop Smarter, Live"
+        accentWord="Better"
+        description="From everyday essentials to the latest gadgets, UNA Mart brings it all together — with trusted delivery and payment options built for Bangladesh."
+        ctaLabel="Shop Now"
+        ctaHref="/category/gadgets"
+      />
     </>
   );
 }
