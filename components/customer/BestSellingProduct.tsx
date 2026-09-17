@@ -10,8 +10,7 @@ import { ProductCardCompact } from "./ProductCardCompact";
 const GRID_TEST_REPEAT = 4;
 
 // "Best Selling Product" homepage section — grid of the compact product
-// card style, per the figma reference. See ProductCardCompact.tsx for why
-// this uses a different card than the rest of the storefront.
+// card style, per the figma reference.
 export function BestSellingProduct({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 

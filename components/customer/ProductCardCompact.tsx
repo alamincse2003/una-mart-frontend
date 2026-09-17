@@ -8,11 +8,10 @@ import { Card } from "@/components/ui/Card";
 import { StarRating } from "@/components/ui/StarRating";
 import { AddToCartPill } from "./AddToCartPill";
 
-// Compact product card for the Best Selling Product section — badge
-// top-left, plain heart top-right, price + "+ Cart" pill on the same row.
-// A separate component from ProductCard (used on category/product pages)
-// since the visual language here is deliberately different — see the
-// Best Selling Product figma reference.
+// Compact product card — badge top-left, plain heart top-right, price +
+// "+ Cart" pill on the same row. Originally built for the Best Selling
+// Product section (per the figma reference) and now the storefront's only
+// product card style, used everywhere via ProductGrid.
 export function ProductCardCompact({ product }: { product: Product }) {
   const outOfStock = product.status === "out_of_stock";
   const discountPct =

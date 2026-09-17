@@ -35,6 +35,16 @@ export function MainNav({
 
   return (
     <nav className="hidden items-center gap-1 lg:flex">
+      <Link
+        href="/products"
+        className={`whitespace-nowrap rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
+          pathname === "/products"
+            ? "bg-navy-800 text-neutral-0"
+            : "text-neutral-600 hover:bg-navy-800 hover:text-neutral-0"
+        }`}
+      >
+        All Products
+      </Link>
       {topLevelCategories.map((category) => {
         const href = `/category/${category.slug}`;
         const active = pathname === href;
