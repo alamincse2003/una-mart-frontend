@@ -1,9 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getProducts } from "@/lib/fake-data";
+import { getCategories, getProductBySlug, getProducts } from "@/lib/fake-data";
 import { StarRating } from "@/components/ui/StarRating";
-import { ProductGrid } from "@/components/customer/ProductGrid";
 import { ProductPurchasePanel } from "@/components/customer/ProductPurchasePanel";
+import { ProductTabs } from "@/components/customer/ProductTabs";
+import { RelatedProductsCarousel } from "@/components/customer/RelatedProductsCarousel";
+import { ProductPromoBanner } from "@/components/customer/ProductPromoBanner";
 import { TruckIcon, ShieldIcon, RefreshIcon } from "@/components/ui/icons";
 
 export default async function ProductPage({
@@ -25,16 +29,38 @@ export default async function ProductPage({
       ? Math.round(100 - (product.price / product.originalPrice) * 100)
       : 0;
 
+  const categories = getCategories();
+  const category = categories.find((c) => c.id === product.categoryId);
+
   const allProducts = getProducts();
   const related = allProducts
     .filter(
       (p) => p.id !== product.id && p.categoryId === product.categoryId
     )
-    .slice(0, 4);
+    .slice(0, 8);
 
   return (
     <>
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:grid-cols-2 sm:px-6">
+      <nav className="mx-auto flex max-w-7xl items-center gap-1.5 px-4 pt-6 text-xs font-medium text-neutral-500 sm:px-6">
+        <Link href="/" className="transition-colors hover:text-navy-800">
+          Home
+        </Link>
+        <ChevronRight width={13} height={13} />
+        {category && (
+          <>
+            <Link
+              href={`/category/${category.slug}`}
+              className="transition-colors hover:text-navy-800"
+            >
+              {category.name}
+            </Link>
+            <ChevronRight width={13} height={13} />
+          </>
+        )}
+        <span className="text-neutral-800">{product.name}</span>
+      </nav>
+
+      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-6 sm:grid-cols-2 sm:px-6">
         <div>
           <div className="relative aspect-square rounded-lg bg-neutral-50">
             <Image
@@ -116,10 +142,6 @@ export default async function ProductPage({
             )}
           </div>
 
-          <p className="mt-5 text-sm leading-relaxed text-neutral-600">
-            {product.description}
-          </p>
-
           <div className="mt-6">
             <ProductPurchasePanel
               productId={product.id}
@@ -150,16 +172,13 @@ export default async function ProductPage({
         </div>
       </section>
 
-      {related.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
-          <h2 className="text-xl font-semibold text-neutral-800">
-            You may also like
-          </h2>
-          <div className="mt-6">
-            <ProductGrid products={related} />
-          </div>
-        </section>
-      )}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <ProductTabs product={product} />
+      </div>
+
+      <RelatedProductsCarousel products={related} />
+
+      <ProductPromoBanner />
     </>
   );
 }
