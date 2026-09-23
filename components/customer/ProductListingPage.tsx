@@ -4,15 +4,16 @@ import { useMemo, useState } from "react";
 import type { Category, Product } from "@/lib/types";
 import { ProductFilters, type FilterState } from "./ProductFilters";
 import { ProductGrid } from "./ProductGrid";
+import { SortDropdown } from "./SortDropdown";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating";
 
-const SORT_LABEL: Record<SortOption, string> = {
-  featured: "Sort: Featured",
-  "price-asc": "Price: Low to High",
-  "price-desc": "Price: High to Low",
-  rating: "Highest Rated",
-};
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "featured", label: "Sort: Featured" },
+  { value: "price-asc", label: "Price: Low to High" },
+  { value: "price-desc", label: "Price: High to Low" },
+  { value: "rating", label: "Highest Rated" },
+];
 
 export function ProductListingPage({
   products,
@@ -105,17 +106,7 @@ export function ProductListingPage({
             {filtered.length} product{filtered.length === 1 ? "" : "s"}{" "}
             available
           </p>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortOption)}
-            className="rounded-md border border-neutral-200 px-3 py-2 text-sm text-neutral-700 outline-none focus:border-coral-400"
-          >
-            {(Object.keys(SORT_LABEL) as SortOption[]).map((key) => (
-              <option key={key} value={key}>
-                {SORT_LABEL[key]}
-              </option>
-            ))}
-          </select>
+          <SortDropdown value={sort} options={SORT_OPTIONS} onChange={setSort} />
         </div>
 
         <div className="mt-4">

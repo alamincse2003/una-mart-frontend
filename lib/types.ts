@@ -64,7 +64,7 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
-export type PaymentMethod = "bkash" | "nagad";
+export type PaymentMethod = "bkash" | "nagad" | "cod";
 
 export interface Order {
   id: string;
