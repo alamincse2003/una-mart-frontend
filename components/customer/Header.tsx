@@ -66,59 +66,65 @@ export function Header({
   }, [products]);
 
   return (
-    <header
-      className="sticky top-0 z-50 bg-neutral-0/80 shadow-sm backdrop-blur-md"
-      onMouseLeave={() => setHoveredCategoryId(null)}
-    >
-      <TopBar />
+    <>
+      <header
+        className="sticky top-0 z-50 bg-neutral-0/80 shadow-sm backdrop-blur-md"
+        onMouseLeave={() => setHoveredCategoryId(null)}
+      >
+        <TopBar />
 
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1 sm:px-6">
-        <Link href="/" className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
-          <Image
-            src="/una-logo.webp"
-            alt="UNA Mart"
-            fill
-            priority
-            sizes="96px"
-            className="object-contain"
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1 sm:px-6">
+          <Link href="/" className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
+            <Image
+              src="/una-logo.webp"
+              alt="UNA Mart"
+              fill
+              priority
+              sizes="96px"
+              className="object-contain"
+            />
+          </Link>
+
+          <MainNav
+            categories={categories}
+            activeCategoryId={hoveredCategoryId}
+            onHoverCategory={setHoveredCategoryId}
           />
-        </Link>
 
-        <MainNav
-          categories={categories}
-          activeCategoryId={hoveredCategoryId}
-          onHoverCategory={setHoveredCategoryId}
-        />
+          <div className="flex shrink-0 items-center gap-1">
+            <HeaderActions />
 
-        <div className="flex shrink-0 items-center gap-1">
-          <HeaderActions />
-
-          <button
-            type="button"
-            aria-label="Open menu"
-            onClick={() => setMobileNavOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-navy-800 transition-colors hover:bg-neutral-100 lg:hidden"
-          >
-            <MenuIcon />
-          </button>
+            <button
+              type="button"
+              aria-label="Open menu"
+              onClick={() => setMobileNavOpen(true)}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-navy-800 transition-colors hover:bg-neutral-100 lg:hidden"
+            >
+              <MenuIcon />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {hoveredCategoryId && (
-        <MegaMenu
-          topLevelCategories={topLevelCategories}
-          subcategoriesByParent={subcategoriesByParent}
-          activeCategoryId={hoveredCategoryId}
-          onHoverCategory={setHoveredCategoryId}
-          productsByCategory={productsByCategory}
-        />
-      )}
+        {hoveredCategoryId && (
+          <MegaMenu
+            topLevelCategories={topLevelCategories}
+            subcategoriesByParent={subcategoriesByParent}
+            activeCategoryId={hoveredCategoryId}
+            onHoverCategory={setHoveredCategoryId}
+            productsByCategory={productsByCategory}
+          />
+        )}
+      </header>
 
+      {/* Rendered as a header sibling, not a descendant — a fixed-position
+          panel inside an ancestor with backdrop-blur/opacity (the header
+          above) can inherit that translucency and bleed the page behind it
+          through what should be a solid white panel. */}
       <MobileNav
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         categories={categories}
       />
-    </header>
+    </>
   );
 }
