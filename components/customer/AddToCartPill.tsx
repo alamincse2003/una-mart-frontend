@@ -30,7 +30,7 @@ export function AddToCartPill({
       type="button"
       onClick={handleClick}
       disabled={disabled || status === "adding"}
-      className="flex items-center gap-1 rounded-pill bg-coral-400 px-3 py-1.5 text-xs font-bold text-navy-900 transition-colors hover:bg-coral-500 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex cursor-pointer items-center gap-1 rounded-pill bg-coral-400 px-3 py-1.5 text-xs font-bold text-navy-900 transition-colors hover:bg-coral-500 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <Plus width={14} height={14} />
       {status === "added" ? "Added" : "Cart"}

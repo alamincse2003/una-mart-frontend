@@ -10,10 +10,20 @@ const IMAGE_MOUSE = "/products/image2.webp";
 const IMAGE_SMARTWATCH = "/products/image3.webp";
 const IMAGE_EARBUDS = "/products/image4.webp";
 const IMAGE_POWERBANK = "/products/image5.webp";
+const IMAGE_SAREE = "/products/Saree1.webp";
+const IMAGE_SHIRT = "/products/Shirt (1).webp";
+const IMAGE_SHOES = "/products/Shoes3.webp";
+const IMAGE_SUNGLASSES = "/products/Sunglasses1.webp";
+const IMAGE_THREE_PIECE = "/products/Three Piece.webp";
+const IMAGE_WATCH_1 = "/products/Watch1.webp";
+const IMAGE_WATCH_4 = "/products/Watch4.webp";
+const IMAGE_WATCH_5 = "/products/Watch5.webp";
 
 export const categories: Category[] = [
   { id: "cat-gadgets", name: "Gadgets", slug: "gadgets", parentId: null },
   { id: "cat-groceries", name: "Groceries", slug: "groceries", parentId: null },
+  { id: "cat-fashion", name: "Fashion", slug: "fashion", parentId: null },
+  { id: "cat-sports", name: "Sports", slug: "sports", parentId: null },
 
   // Gadgets subcategories
   { id: "cat-audio", name: "Audio", slug: "audio", parentId: "cat-gadgets" },
@@ -54,6 +64,40 @@ export const categories: Category[] = [
     name: "Snacks & Beverages",
     slug: "snacks-beverages",
     parentId: "cat-groceries",
+  },
+
+  // Fashion subcategories
+  {
+    id: "cat-mens-wear",
+    name: "Men's Wear",
+    slug: "mens-wear",
+    parentId: "cat-fashion",
+  },
+  {
+    id: "cat-womens-wear",
+    name: "Women's Wear",
+    slug: "womens-wear",
+    parentId: "cat-fashion",
+  },
+  {
+    id: "cat-fashion-accessories",
+    name: "Watches & Accessories",
+    slug: "watches-accessories",
+    parentId: "cat-fashion",
+  },
+
+  // Sports subcategories
+  {
+    id: "cat-sports-footwear",
+    name: "Footwear",
+    slug: "sports-footwear",
+    parentId: "cat-sports",
+  },
+  {
+    id: "cat-fitness",
+    name: "Fitness Equipment",
+    slug: "fitness-equipment",
+    parentId: "cat-sports",
   },
 ];
 
@@ -226,6 +270,156 @@ export const products: Product[] = [
     createdAt: "2026-01-23T00:00:00.000Z",
     rating: 4.4,
     reviewCount: 34,
+  },
+  {
+    id: "prod-12",
+    name: "Embroidered Silk Saree",
+    slug: "embroidered-silk-saree",
+    description: "Traditional silk saree with hand-finished embroidery detail.",
+    price: 3450,
+    originalPrice: 4200,
+    stockQty: 24,
+    categoryId: "cat-womens-wear",
+    images: [IMAGE_SAREE],
+    status: "active",
+    createdAt: "2026-01-24T00:00:00.000Z",
+    rating: 4.7,
+    reviewCount: 52,
+    badge: "sale",
+    freeDelivery: true,
+  },
+  {
+    id: "prod-13",
+    name: "Men's Casual Cotton Shirt",
+    slug: "mens-casual-cotton-shirt",
+    description: "Breathable cotton shirt, regular fit, machine washable.",
+    price: 950,
+    stockQty: 90,
+    categoryId: "cat-mens-wear",
+    images: [IMAGE_SHIRT],
+    status: "active",
+    createdAt: "2026-01-25T00:00:00.000Z",
+    rating: 4.4,
+    reviewCount: 38,
+    badge: "new",
+  },
+  {
+    id: "prod-14",
+    name: "Unisex Sports Sneakers",
+    slug: "unisex-sports-sneakers",
+    description: "Lightweight, cushioned sole, breathable mesh upper.",
+    price: 2200,
+    stockQty: 65,
+    categoryId: "cat-sports-footwear",
+    images: [IMAGE_SHOES],
+    status: "active",
+    createdAt: "2026-01-26T00:00:00.000Z",
+    rating: 4.6,
+    reviewCount: 71,
+    badge: "best",
+    freeDelivery: true,
+  },
+  {
+    id: "prod-15",
+    name: "Classic UV-Protection Sunglasses",
+    slug: "classic-uv-protection-sunglasses",
+    description: "Polarized lenses with full UV400 protection, unisex frame.",
+    price: 780,
+    stockQty: 110,
+    categoryId: "cat-fashion-accessories",
+    images: [IMAGE_SUNGLASSES],
+    status: "active",
+    createdAt: "2026-01-27T00:00:00.000Z",
+    rating: 4.3,
+    reviewCount: 29,
+  },
+  {
+    id: "prod-16",
+    name: "Women's Three-Piece Outfit",
+    slug: "womens-three-piece-outfit",
+    description: "Matching three-piece set — kameez, salwar and dupatta.",
+    price: 2650,
+    stockQty: 40,
+    categoryId: "cat-womens-wear",
+    images: [IMAGE_THREE_PIECE],
+    status: "active",
+    createdAt: "2026-01-28T00:00:00.000Z",
+    rating: 4.5,
+    reviewCount: 22,
+  },
+  {
+    id: "prod-17",
+    name: "Classic Analog Watch",
+    slug: "classic-analog-watch",
+    description: "Stainless steel case, genuine leather strap, water resistant.",
+    price: 1850,
+    originalPrice: 2300,
+    stockQty: 33,
+    categoryId: "cat-fashion-accessories",
+    images: [IMAGE_WATCH_1],
+    status: "active",
+    createdAt: "2026-01-29T00:00:00.000Z",
+    rating: 4.6,
+    reviewCount: 47,
+    badge: "sale",
+  },
+  {
+    id: "prod-18",
+    name: "Sports Chronograph Watch",
+    slug: "sports-chronograph-watch",
+    description: "Shock-resistant sports watch with chronograph and backlight.",
+    price: 2100,
+    stockQty: 27,
+    categoryId: "cat-fashion-accessories",
+    images: [IMAGE_WATCH_4],
+    status: "active",
+    createdAt: "2026-01-30T00:00:00.000Z",
+    rating: 4.4,
+    reviewCount: 18,
+  },
+  {
+    id: "prod-19",
+    name: "Minimalist Dress Watch",
+    slug: "minimalist-dress-watch",
+    description: "Slim profile dress watch, mesh strap, scratch-resistant glass.",
+    price: 1650,
+    stockQty: 45,
+    categoryId: "cat-fashion-accessories",
+    images: [IMAGE_WATCH_5],
+    status: "active",
+    createdAt: "2026-01-31T00:00:00.000Z",
+    rating: 4.5,
+    reviewCount: 31,
+    badge: "new",
+  },
+  {
+    id: "prod-20",
+    name: "Adjustable Dumbbell Set",
+    slug: "adjustable-dumbbell-set",
+    description: "5-25kg adjustable dumbbell pair for home strength training.",
+    price: 4200,
+    stockQty: 15,
+    categoryId: "cat-fitness",
+    images: [IMAGE_POWERBANK], // no real fitness photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-02-01T00:00:00.000Z",
+    rating: 4.6,
+    reviewCount: 24,
+    freeDelivery: true,
+  },
+  {
+    id: "prod-21",
+    name: "Yoga Mat (Non-Slip)",
+    slug: "yoga-mat-non-slip",
+    description: "6mm thick non-slip yoga mat with carry strap.",
+    price: 690,
+    stockQty: 85,
+    categoryId: "cat-fitness",
+    images: [IMAGE_EARBUDS], // no real fitness photo yet — reusing gadget photo
+    status: "active",
+    createdAt: "2026-02-02T00:00:00.000Z",
+    rating: 4.5,
+    reviewCount: 40,
   },
 ];
 
