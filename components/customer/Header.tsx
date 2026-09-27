@@ -73,7 +73,7 @@ export function Header({
       >
         <TopBar />
 
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-1 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-1 sm:px-6 xl:gap-4">
           <Link href="/" className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
             <Image
               src="/una-logo.webp"

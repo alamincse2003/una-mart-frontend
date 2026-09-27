@@ -34,10 +34,10 @@ export function MainNav({
   const topLevelCategories = categories.filter((c) => !c.parentId);
 
   return (
-    <nav className="hidden items-center gap-1 lg:flex">
+    <nav className="hidden items-center gap-0.5 lg:flex xl:gap-1">
       <Link
         href="/products"
-        className={`whitespace-nowrap rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
+        className={`whitespace-nowrap rounded-pill px-2.5 py-2 text-sm font-semibold transition-colors xl:px-4 ${
           pathname === "/products"
             ? "bg-navy-800 text-neutral-0"
             : "text-neutral-600 hover:bg-navy-800 hover:text-neutral-0"
@@ -58,7 +58,7 @@ export function MainNav({
             key={category.id}
             href={href}
             onMouseEnter={() => onHoverCategory(category.id)}
-            className={`flex items-center gap-1 whitespace-nowrap rounded-pill px-4 py-2 text-sm font-semibold transition-colors ${
+            className={`flex items-center gap-1 whitespace-nowrap rounded-pill px-2.5 py-2 text-sm font-semibold transition-colors xl:px-4 ${
               active
                 ? "bg-navy-800 text-neutral-0"
                 : "text-neutral-600 hover:bg-navy-800 hover:text-neutral-0"
@@ -79,7 +79,7 @@ export function MainNav({
       })}
       <Link
         href="/#deals"
-        className="ml-1 whitespace-nowrap rounded-pill px-4 py-2 text-sm font-bold text-coral-600 transition-colors hover:bg-coral-600 hover:text-neutral-0"
+        className="ml-1 whitespace-nowrap rounded-pill px-2.5 py-2 text-sm font-bold text-coral-600 transition-colors hover:bg-coral-600 hover:text-neutral-0 xl:px-4"
       >
         Deals
       </Link>

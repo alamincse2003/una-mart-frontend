@@ -49,12 +49,12 @@ export function HeaderActions() {
 function SearchBar({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`w-56 items-center rounded-pill border border-neutral-200 bg-neutral-0 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-coral-400 focus-within:ring-4 focus-within:ring-coral-400/15 lg:w-64 ${className}`}
+      className={`w-36 items-center rounded-pill border border-neutral-200 bg-neutral-0 py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-coral-400 focus-within:ring-4 focus-within:ring-coral-400/15 lg:w-40 xl:w-64 ${className}`}
     >
       <input
         type="text"
-        placeholder="Search for products…"
-        className="w-full flex-1 bg-transparent px-3 py-1 text-sm outline-none placeholder:text-neutral-400"
+        placeholder="Search…"
+        className="w-full min-w-0 flex-1 bg-transparent px-3 py-1 text-sm outline-none placeholder:text-neutral-400"
       />
       <button
         type="button"
