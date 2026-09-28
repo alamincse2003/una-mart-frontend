@@ -26,7 +26,7 @@ const OUR_PROMISE = [
 
 const OUR_FOCUS = [
   "Building Bangladesh's most trusted online marketplace",
-  "Widest range across gadgets, groceries and more",
+  "Widest range across gadgets, fashion, accessories and more",
   "Nationwide delivery with real customer support",
 ];
 
@@ -83,7 +83,7 @@ export default function AboutPage() {
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-neutral-600">
               UNA Mart is dedicated to delivering world-class online shopping to
-              homes and businesses across Bangladesh. From gadgets to groceries,
+              homes and businesses across Bangladesh. From gadgets to fashion,
               we&apos;re committed to bringing you products you can rely on,
               delivered fast and priced fairly.
             </p>

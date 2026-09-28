@@ -24,7 +24,7 @@ const FEATURES = [
     icon: LayoutGrid,
     title: "Everything in One Place",
     description:
-      "Gadgets, groceries and more — one marketplace instead of ten different apps.",
+      "Gadgets, fashion, accessories and more — one marketplace instead of ten different apps.",
   },
   {
     icon: ShieldCheck,

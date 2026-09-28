@@ -35,11 +35,11 @@ export default async function HomePage() {
         ctaHref="/category/gadgets"
       />
       <FeatureHighlight
-        image="/products/image1.webp"
-        title="Also Available in Groceries"
-        description="From cooking oil to daily staples, we're stocking essentials alongside gadgets so your order doesn't need a second trip. Same trusted delivery and payment options across every category."
-        ctaLabel="Shop Groceries"
-        ctaHref="/category/groceries"
+        image="/products/Watch1.webp"
+        title="Also Available in Accessories"
+        description="From watches to sunglasses, we're stocking the finishing touches alongside gadgets and fashion so your order doesn't need a second trip. Same trusted delivery and payment options across every category."
+        ctaLabel="Shop Accessories"
+        ctaHref="/category/accessories"
         imageSide="right"
       />
       <PromoBanner

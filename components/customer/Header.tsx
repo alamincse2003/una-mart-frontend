@@ -24,9 +24,10 @@ import { MegaMenu } from "./MegaMenu";
 // that's the same for every visitor anyway.
 //
 // The MegaMenu is rendered here (not inside MainNav) because it needs to
-// span the full header width, not just the width of the nav links — see
-// MegaMenu.tsx for the panel itself and MainNav.tsx for how hover events
-// reach `hoveredCategoryId` below.
+// span the full header width, not just the width of the nav links —
+// MainNav reports which category is hovered via onHoverCategory, and this
+// component owns `hoveredCategoryId` so both MainNav and MegaMenu agree on
+// which category is active. See MegaMenu.tsx for the panel itself.
 export function Header({
   categories,
   products,
@@ -110,7 +111,6 @@ export function Header({
             topLevelCategories={topLevelCategories}
             subcategoriesByParent={subcategoriesByParent}
             activeCategoryId={hoveredCategoryId}
-            onHoverCategory={setHoveredCategoryId}
             productsByCategory={productsByCategory}
           />
         )}

@@ -20,8 +20,8 @@ export function ProductPromoBanner() {
             Everything you need, <span className="text-coral-400">delivered fast.</span>
           </h2>
           <p className="mt-3 max-w-sm text-sm text-navy-100">
-            Shop gadgets and groceries from a single marketplace built for
-            Bangladesh — reliable delivery, trusted payments.
+            Shop gadgets, fashion and accessories from a single marketplace
+            built for Bangladesh — reliable delivery, trusted payments.
           </p>
           <Link
             href="/products"

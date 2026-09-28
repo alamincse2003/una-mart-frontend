@@ -12,22 +12,14 @@ import { ArrowRightIcon } from "@/components/ui/icons";
 // real category shots once available.
 const CATEGORY_IMAGE: Record<string, string> = {
   gadgets: "/products/image3.webp",
-  groceries: "/products/image1.webp",
+  fashion: "/products/Three Piece.webp",
+  accessories: "/products/Watch4.webp",
+  sports: "/products/Shoes3.webp",
 };
-
-// TEST DATA ONLY: there are just 2 real top-level categories today, not
-// enough to need a carousel. Repeating them here is purely so the arrow
-// buttons/scroll behavior can be verified before more real categories
-// exist — remove this repeat once the catalog has enough categories to
-// need scrolling on its own.
-const CAROUSEL_TEST_REPEAT = 4;
 
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const topLevel = categories.filter((c) => !c.parentId);
-  const cards = Array.from({ length: CAROUSEL_TEST_REPEAT }, (_, i) =>
-    topLevel.map((category) => ({ category, repeatIndex: i })),
-  ).flat();
 
   const scrollByCard = (direction: 1 | -1) => {
     const track = trackRef.current;
@@ -72,9 +64,9 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
         ref={trackRef}
         className="mt-6 flex gap-4 overflow-x-auto scroll-smooth pb-2 scrollbar-none"
       >
-        {cards.map(({ category, repeatIndex }) => (
+        {topLevel.map((category) => (
           <Link
-            key={`${category.id}-${repeatIndex}`}
+            key={category.id}
             href={`/category/${category.slug}`}
             className="group relative aspect-3/4 w-45 shrink-0 overflow-hidden rounded-lg shadow-sm transition-shadow hover:shadow-lg sm:w-60"
           >

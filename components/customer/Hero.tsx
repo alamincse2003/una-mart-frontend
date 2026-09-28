@@ -42,8 +42,8 @@ export function Hero() {
           <span className="text-coral-400">in one place.</span>
         </h1>
         <p className="hero-subtitle mt-3 max-w-sm text-sm text-navy-100 sm:text-base">
-          Gadgets, groceries and more — all delivered from a single
-          marketplace built for Bangladesh.
+          Gadgets, fashion, accessories and more — all delivered from a
+          single marketplace built for Bangladesh.
         </p>
         <div className="hero-cta mt-6">
           <Link

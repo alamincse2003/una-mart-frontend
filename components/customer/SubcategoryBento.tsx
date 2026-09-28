@@ -5,12 +5,12 @@ import type { Category } from "@/lib/types";
 
 // Bento-style feature block for one parent category's subcategories, per
 // the figma reference. Needs exactly 4 items to fill the 1-big + 3-small
-// grid shape — Gadgets has 4 real subcategories today (Groceries only has
-// 3), so this is scoped to Gadgets until another category has 4.
+// grid shape — Gadgets has 4 real subcategories today, so this is scoped
+// to Gadgets until another category has 4.
 const SUBCATEGORY_IMAGE: Record<string, string> = {
   audio: "/products/image4.webp",
   wearables: "/products/image3.webp",
-  accessories: "/products/image2.webp",
+  "gadget-accessories": "/products/image2.webp",
   "chargers-cables": "/products/image5.webp",
 };
 

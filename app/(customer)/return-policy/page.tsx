@@ -27,7 +27,7 @@ export default function ReturnPolicyPage() {
               Non-Returnable Items
             </h2>
             <p className="mt-2">
-              For hygiene and safety reasons, groceries, perishable goods, and
+              For hygiene and safety reasons, innerwear, swimwear, and
               personal care items cannot be returned once delivered, unless
               the item arrived damaged or incorrect.
             </p>

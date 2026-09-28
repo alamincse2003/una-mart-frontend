@@ -20,9 +20,14 @@ const IMAGE_WATCH_4 = "/products/Watch4.webp";
 const IMAGE_WATCH_5 = "/products/Watch5.webp";
 
 export const categories: Category[] = [
-  { id: "cat-gadgets", name: "Gadgets", slug: "gadgets", parentId: null },
-  { id: "cat-groceries", name: "Groceries", slug: "groceries", parentId: null },
   { id: "cat-fashion", name: "Fashion", slug: "fashion", parentId: null },
+  { id: "cat-gadgets", name: "Gadgets", slug: "gadgets", parentId: null },
+  {
+    id: "cat-accessories-top",
+    name: "Accessories",
+    slug: "accessories",
+    parentId: null,
+  },
   { id: "cat-sports", name: "Sports", slug: "sports", parentId: null },
 
   // Gadgets subcategories
@@ -34,9 +39,9 @@ export const categories: Category[] = [
     parentId: "cat-gadgets",
   },
   {
-    id: "cat-accessories",
+    id: "cat-gadget-accessories",
     name: "Accessories",
-    slug: "accessories",
+    slug: "gadget-accessories",
     parentId: "cat-gadgets",
   },
   {
@@ -44,26 +49,6 @@ export const categories: Category[] = [
     name: "Chargers & Cables",
     slug: "chargers-cables",
     parentId: "cat-gadgets",
-  },
-
-  // Groceries subcategories
-  {
-    id: "cat-staples",
-    name: "Staples",
-    slug: "staples",
-    parentId: "cat-groceries",
-  },
-  {
-    id: "cat-cooking-oil",
-    name: "Cooking Oil",
-    slug: "cooking-oil",
-    parentId: "cat-groceries",
-  },
-  {
-    id: "cat-snacks",
-    name: "Snacks & Beverages",
-    slug: "snacks-beverages",
-    parentId: "cat-groceries",
   },
 
   // Fashion subcategories
@@ -79,11 +64,33 @@ export const categories: Category[] = [
     slug: "womens-wear",
     parentId: "cat-fashion",
   },
+
+  // Men's Wear subcategories
   {
-    id: "cat-fashion-accessories",
-    name: "Watches & Accessories",
-    slug: "watches-accessories",
-    parentId: "cat-fashion",
+    id: "cat-mens-summer",
+    name: "Summer",
+    slug: "mens-summer",
+    parentId: "cat-mens-wear",
+  },
+  {
+    id: "cat-mens-winter",
+    name: "Winter",
+    slug: "mens-winter",
+    parentId: "cat-mens-wear",
+  },
+
+  // Women's Wear subcategories
+  {
+    id: "cat-womens-summer",
+    name: "Summer",
+    slug: "womens-summer",
+    parentId: "cat-womens-wear",
+  },
+  {
+    id: "cat-womens-winter",
+    name: "Winter",
+    slug: "womens-winter",
+    parentId: "cat-womens-wear",
   },
 
   // Sports subcategories
@@ -159,7 +166,7 @@ export const products: Product[] = [
     description: "Ergonomic wireless mouse, adjustable DPI, silent clicks.",
     price: 890,
     stockQty: 120,
-    categoryId: "cat-accessories",
+    categoryId: "cat-gadget-accessories",
     images: [IMAGE_MOUSE],
     status: "active",
     createdAt: "2026-01-15T00:00:00.000Z",
@@ -183,67 +190,6 @@ export const products: Product[] = [
     badge: "sale",
   },
   {
-    id: "prod-6",
-    name: "Premium Basmati Rice (5kg)",
-    slug: "premium-basmati-rice-5kg",
-    description: "Aged basmati rice, long grain, sourced from local mills.",
-    price: 750,
-    stockQty: 200,
-    categoryId: "cat-staples",
-    images: [IMAGE_HEADPHONES], // no real rice photo yet — reusing gadget photo
-    status: "active",
-    createdAt: "2026-01-18T00:00:00.000Z",
-    rating: 4.7,
-    reviewCount: 88,
-    badge: "new",
-    freeDelivery: true,
-  },
-  {
-    id: "prod-7",
-    name: "Soybean Cooking Oil (5L)",
-    slug: "soybean-cooking-oil-5l",
-    description: "Refined soybean oil, fortified with vitamin A and D.",
-    price: 890,
-    stockQty: 150,
-    categoryId: "cat-cooking-oil",
-    images: [IMAGE_MOUSE], // no real oil photo yet — reusing gadget photo
-    status: "active",
-    createdAt: "2026-01-19T00:00:00.000Z",
-    rating: 4.2,
-    reviewCount: 41,
-    freeDelivery: true,
-  },
-  {
-    id: "prod-8",
-    name: "Red Lentils (1kg)",
-    slug: "red-lentils-1kg",
-    description: "Split red lentils (masoor dal), cleaned and sorted.",
-    price: 140,
-    stockQty: 300,
-    categoryId: "cat-staples",
-    images: [IMAGE_SMARTWATCH], // no real lentils photo yet — reusing gadget photo
-    status: "active",
-    createdAt: "2026-01-20T00:00:00.000Z",
-    rating: 4.5,
-    reviewCount: 65,
-    badge: "best",
-    freeDelivery: true,
-  },
-  {
-    id: "prod-9",
-    name: "Sunflower Cooking Oil (2L)",
-    slug: "sunflower-cooking-oil-2l",
-    description: "Light, refined sunflower oil for everyday cooking.",
-    price: 420,
-    stockQty: 0,
-    categoryId: "cat-cooking-oil",
-    images: [IMAGE_EARBUDS], // no real oil photo yet — reusing gadget photo
-    status: "out_of_stock",
-    createdAt: "2026-01-21T00:00:00.000Z",
-    rating: 4.1,
-    reviewCount: 27,
-  },
-  {
     id: "prod-10",
     name: "USB-C to Lightning Cable",
     slug: "usb-c-to-lightning-cable",
@@ -258,20 +204,6 @@ export const products: Product[] = [
     reviewCount: 19,
   },
   {
-    id: "prod-11",
-    name: "Assorted Biscuits Pack",
-    slug: "assorted-biscuits-pack",
-    description: "A mixed pack of tea-time biscuits, resealable box of 12.",
-    price: 320,
-    stockQty: 140,
-    categoryId: "cat-snacks",
-    images: [IMAGE_MOUSE], // no real snacks photo yet — reusing gadget photo
-    status: "active",
-    createdAt: "2026-01-23T00:00:00.000Z",
-    rating: 4.4,
-    reviewCount: 34,
-  },
-  {
     id: "prod-12",
     name: "Embroidered Silk Saree",
     slug: "embroidered-silk-saree",
@@ -279,7 +211,7 @@ export const products: Product[] = [
     price: 3450,
     originalPrice: 4200,
     stockQty: 24,
-    categoryId: "cat-womens-wear",
+    categoryId: "cat-womens-summer",
     images: [IMAGE_SAREE],
     status: "active",
     createdAt: "2026-01-24T00:00:00.000Z",
@@ -295,7 +227,7 @@ export const products: Product[] = [
     description: "Breathable cotton shirt, regular fit, machine washable.",
     price: 950,
     stockQty: 90,
-    categoryId: "cat-mens-wear",
+    categoryId: "cat-mens-summer",
     images: [IMAGE_SHIRT],
     status: "active",
     createdAt: "2026-01-25T00:00:00.000Z",
@@ -326,7 +258,7 @@ export const products: Product[] = [
     description: "Polarized lenses with full UV400 protection, unisex frame.",
     price: 780,
     stockQty: 110,
-    categoryId: "cat-fashion-accessories",
+    categoryId: "cat-accessories-top",
     images: [IMAGE_SUNGLASSES],
     status: "active",
     createdAt: "2026-01-27T00:00:00.000Z",
@@ -340,7 +272,7 @@ export const products: Product[] = [
     description: "Matching three-piece set — kameez, salwar and dupatta.",
     price: 2650,
     stockQty: 40,
-    categoryId: "cat-womens-wear",
+    categoryId: "cat-womens-winter",
     images: [IMAGE_THREE_PIECE],
     status: "active",
     createdAt: "2026-01-28T00:00:00.000Z",
@@ -355,7 +287,7 @@ export const products: Product[] = [
     price: 1850,
     originalPrice: 2300,
     stockQty: 33,
-    categoryId: "cat-fashion-accessories",
+    categoryId: "cat-accessories-top",
     images: [IMAGE_WATCH_1],
     status: "active",
     createdAt: "2026-01-29T00:00:00.000Z",
@@ -370,7 +302,7 @@ export const products: Product[] = [
     description: "Shock-resistant sports watch with chronograph and backlight.",
     price: 2100,
     stockQty: 27,
-    categoryId: "cat-fashion-accessories",
+    categoryId: "cat-accessories-top",
     images: [IMAGE_WATCH_4],
     status: "active",
     createdAt: "2026-01-30T00:00:00.000Z",
@@ -384,7 +316,7 @@ export const products: Product[] = [
     description: "Slim profile dress watch, mesh strap, scratch-resistant glass.",
     price: 1650,
     stockQty: 45,
-    categoryId: "cat-fashion-accessories",
+    categoryId: "cat-accessories-top",
     images: [IMAGE_WATCH_5],
     status: "active",
     createdAt: "2026-01-31T00:00:00.000Z",
@@ -420,6 +352,21 @@ export const products: Product[] = [
     createdAt: "2026-02-02T00:00:00.000Z",
     rating: 4.5,
     reviewCount: 40,
+  },
+  {
+    id: "prod-22",
+    name: "Men's Padded Winter Jacket",
+    slug: "mens-padded-winter-jacket",
+    description: "Water-resistant padded jacket, warm lining, zip pockets.",
+    price: 2450,
+    stockQty: 30,
+    categoryId: "cat-mens-winter",
+    images: [IMAGE_SHIRT], // no real jacket photo yet — reusing fashion photo
+    status: "active",
+    createdAt: "2026-02-03T00:00:00.000Z",
+    rating: 4.4,
+    reviewCount: 12,
+    badge: "new",
   },
 ];
 

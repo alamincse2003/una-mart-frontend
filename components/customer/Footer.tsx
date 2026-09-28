@@ -65,9 +65,9 @@ const LINK_COLUMNS: { title: string; links: { label: string; href: string }[] }[
     title: "Categories",
     links: [
       { label: "Gadgets", href: "/category/gadgets" },
-      { label: "Groceries", href: "/category/groceries" },
-      { label: "Audio", href: "/category/audio" },
-      { label: "Staples", href: "/category/staples" },
+      { label: "Fashion", href: "/category/fashion" },
+      { label: "Accessories", href: "/category/accessories" },
+      { label: "Sports", href: "/category/sports" },
     ],
   },
   {
@@ -137,8 +137,8 @@ export function Footer() {
               />
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-navy-200">
-              Everything you need, in one place — gadgets, groceries and more,
-              delivered across Bangladesh.
+              Everything you need, in one place — gadgets, fashion,
+              accessories and more, delivered across Bangladesh.
             </p>
 
             <ul className="mt-4 flex flex-col gap-2.5 text-sm text-navy-200">
