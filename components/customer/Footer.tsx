@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 // Social brand logos aren't in lucide-react (generic icons only), so these
@@ -50,17 +51,33 @@ const SUPPORT_EMAIL = "info.unamartbd@gmail.com";
 const SUPPORT_ADDRESS = "Gulshan-2, Dhaka Bangladesh";
 const WHATSAPP_NUMBER = "8801927967894";
 
-const LINK_COLUMNS: { title: string; links: string[] }[] = [
-  { title: "Company", links: ["About Us", "Shop", "FAQ", "Contact Us"] },
-  { title: "Categories", links: ["Gadgets", "Groceries", "Audio", "Staples"] },
+const LINK_COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Shop", href: "/products" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+  {
+    title: "Categories",
+    links: [
+      { label: "Gadgets", href: "/category/gadgets" },
+      { label: "Groceries", href: "/category/groceries" },
+      { label: "Audio", href: "/category/audio" },
+      { label: "Staples", href: "/category/staples" },
+    ],
+  },
   {
     title: "Help",
     links: [
-      "Track Order",
-      "Return Policy",
-      "Shipping & Delivery Policy",
-      "Terms & Conditions",
-      "Privacy Policy",
+      { label: "Track Order", href: "/track-order" },
+      { label: "Return Policy", href: "/return-policy" },
+      { label: "Shipping & Delivery Policy", href: "/shipping-policy" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
     ],
   },
 ];
@@ -172,13 +189,13 @@ export function Footer() {
               </h3>
               <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
                       className="text-sm text-navy-200 transition-colors hover:text-neutral-0"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
