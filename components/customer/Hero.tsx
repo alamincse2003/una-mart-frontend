@@ -1,61 +1,70 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ArrowUpRight } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+
+const SLIDES = [
+  "/products/unamart-banner/banner1.webp",
+  "/products/unamart-banner/banner2.webp",
+  "/products/unamart-banner/banner3.webp",
+  "/products/unamart-banner/banner4.webp",
+  "/products/unamart-banner/banner5.webp",
+  "/products/unamart-banner/banner6.webp",
+];
+
+const AUTOPLAY_MS = 5000;
 
 export function Hero() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+
+  const goTo = useCallback((index: number) => {
+    setActive((index + SLIDES.length) % SLIDES.length);
+  }, []);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .from(".hero-title", { opacity: 0, y: 24, duration: 0.6 })
-        .from(".hero-subtitle", { opacity: 0, y: 16, duration: 0.5 }, "-=0.35")
-        .from(".hero-cta", { opacity: 0, y: 12, duration: 0.4 }, "-=0.3");
-    }, containerRef);
-
-    return () => ctx.revert();
+    const id = setInterval(() => {
+      setActive((current) => (current + 1) % SLIDES.length);
+    }, AUTOPLAY_MS);
+    return () => clearInterval(id);
   }, []);
 
   return (
-    <section
-      ref={containerRef}
-      className="relative flex min-h-100 items-center overflow-hidden   bg-navy-900 sm:min-h-125"
-    >
-      <Image
-        src="/products/image3.webp"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-center opacity-90"
-      />
-      <div className="absolute inset-0 bg-linear-to-r from-navy-900 via-navy-900/85 to-navy-900/40" />
-
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
-        <h1 className="hero-title max-w-md text-3xl font-bold leading-tight text-neutral-0 sm:text-4xl">
-          Everything you need,{" "}
-          <span className="text-coral-400">in one place.</span>
-        </h1>
-        <p className="hero-subtitle mt-3 max-w-sm text-sm text-navy-100 sm:text-base">
-          Gadgets, fashion, accessories and more — all delivered from a
-          single marketplace built for Bangladesh.
-        </p>
-        <div className="hero-cta mt-6">
-          <Link
-            href="/category/gadgets"
-            className="inline-flex items-center gap-3 rounded-md bg-coral-400 py-1.5 pl-5 pr-1.5 text-sm font-bold text-navy-900 transition-colors hover:bg-coral-500"
+    <section className="relative overflow-hidden bg-neutral-900">
+      <div className="relative h-70 w-full sm:h-90 md:h-100">
+        {SLIDES.map((slide, i) => (
+          <div
+            key={slide}
+            aria-hidden={i !== active}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              i === active ? "opacity-100" : "opacity-0"
+            }`}
           >
-            Explore Now
-            <span className="flex h-8 w-8 items-center justify-center rounded bg-navy-900 text-neutral-0">
-              <ArrowUpRight width={16} height={16} />
-            </span>
-          </Link>
-        </div>
+            <Image
+              src={slide}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              className="object-cover"
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2 sm:bottom-6">
+        {SLIDES.map((slide, i) => (
+          <button
+            key={slide}
+            type="button"
+            aria-label={`Go to slide ${i + 1}`}
+            onClick={() => goTo(i)}
+            className={`h-2 rounded-pill transition-all ${
+              i === active
+                ? "w-6 bg-neutral-0"
+                : "w-2 bg-neutral-0/50 hover:bg-neutral-0/80"
+            }`}
+          />
+        ))}
       </div>
     </section>
   );
