@@ -1,6 +1,10 @@
 import { getCategories, getProducts } from "@/lib/fake-data";
 import { Header } from "@/components/customer/Header";
 import { Footer } from "@/components/customer/Footer";
+import { CartDrawer } from "@/components/customer/CartDrawer";
+import type { MenuProduct } from "@/components/customer/MegaMenu";
+
+const MENU_PRODUCTS_PER_CATEGORY = 5;
 
 export default function CustomerLayout({
   children,
@@ -8,13 +12,30 @@ export default function CustomerLayout({
   children: React.ReactNode;
 }) {
   const categories = getCategories();
-  const products = getProducts();
+
+  // The mega menu only needs a handful of names per category — send that,
+  // not the whole catalog, to the client header on every page.
+  const menuProducts: Record<string, MenuProduct[]> = {};
+  for (const product of getProducts()) {
+    const bucket = (menuProducts[product.categoryId] ??= []);
+    if (bucket.length < MENU_PRODUCTS_PER_CATEGORY) {
+      bucket.push({
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        image: product.images[0],
+      });
+    }
+  }
 
   return (
     <>
-      <Header categories={categories} products={products} />
-      <main className="flex-1">{children}</main>
-      <Footer />
+      <Header categories={categories} menuProducts={menuProducts} />
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
+        {children}
+      </main>
+      <Footer categories={categories} />
+      <CartDrawer />
     </>
   );
 }

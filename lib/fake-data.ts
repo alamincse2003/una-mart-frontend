@@ -370,35 +370,81 @@ export const products: Product[] = [
   },
 ];
 
+/** A category plus all of its descendants (any depth). */
+export function getDescendantCategoryIds(categoryId: string): Set<string> {
+  const ids = new Set([categoryId]);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const c of categories) {
+      if (c.parentId && ids.has(c.parentId) && !ids.has(c.id)) {
+        ids.add(c.id);
+        added = true;
+      }
+    }
+  }
+  return ids;
+}
+
+// Mirrors GET /products — "category" matches the category AND its
+// subcategories (so /category/gadgets lists audio, wearables, etc.), and
+// "ids" lets the cart price its items without downloading the catalog.
 export function getProducts(params?: {
   category?: string;
   search?: string;
+  ids?: string[];
 }): Product[] {
-  let result = products;
+  let result = products.filter((p) => p.status !== "draft");
 
   if (params?.category) {
     const matchedCategory = categories.find((c) => c.slug === params.category);
-    result = result.filter(
-      (p) => matchedCategory && p.categoryId === matchedCategory.id
-    );
+    if (!matchedCategory) return [];
+    const allowed = getDescendantCategoryIds(matchedCategory.id);
+    result = result.filter((p) => allowed.has(p.categoryId));
   }
 
   if (params?.search) {
-    const term = params.search.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.name.toLowerCase().includes(term) ||
-        p.description.toLowerCase().includes(term)
-    );
+    const terms = params.search.toLowerCase().trim().split(/\s+/);
+    result = result.filter((p) => {
+      const category = categories.find((c) => c.id === p.categoryId);
+      const haystack = `${p.name} ${p.description} ${category?.name ?? ""}`.toLowerCase();
+      return terms.every((term) => haystack.includes(term));
+    });
+  }
+
+  if (params?.ids) {
+    const wanted = new Set(params.ids);
+    result = result.filter((p) => wanted.has(p.id));
   }
 
   return result;
 }
 
 export function getProductBySlug(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
+  return products.find((p) => p.slug === slug && p.status !== "draft");
+}
+
+export function getProductById(id: string): Product | undefined {
+  return products.find((p) => p.id === id);
 }
 
 export function getCategories(): Category[] {
   return categories;
+}
+
+export function getCategoryBySlug(slug: string): Category | undefined {
+  return categories.find((c) => c.slug === slug);
+}
+
+/** Root-first ancestor chain, e.g. Fashion → Men's Wear → Summer. */
+export function getCategoryPath(categoryId: string): Category[] {
+  const path: Category[] = [];
+  let current = categories.find((c) => c.id === categoryId);
+  while (current) {
+    path.unshift(current);
+    current = current.parentId
+      ? categories.find((c) => c.id === current!.parentId)
+      : undefined;
+  }
+  return path;
 }

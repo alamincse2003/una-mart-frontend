@@ -64,6 +64,9 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
+// NOTE: "cod" is not in SYSTEM_DESIGN.md's Order.payment_method enum yet
+// (bkash | nagad). The storefront offers Cash on Delivery, so the backend
+// schema needs it too — flagged for the NestJS Order entity.
 export type PaymentMethod = "bkash" | "nagad" | "cod";
 
 export interface Order {
@@ -74,6 +77,25 @@ export interface Order {
   paymentMethod: PaymentMethod;
   shippingAddress: string;
   createdAt: string;
+}
+
+// Body of POST /orders. The server reads items from the session cart and
+// re-prices them — the client never sends prices it expects to be trusted.
+export interface CreateOrderRequest {
+  customerName: string;
+  phone: string;
+  email?: string;
+  address: string;
+  city: string;
+  deliveryZone: "inside_dhaka" | "outside_dhaka";
+  paymentMethod: PaymentMethod;
+  note?: string;
+}
+
+export interface CreateOrderResponse {
+  order: Order;
+  items: OrderItem[];
+  deliveryFee: number;
 }
 
 export interface OrderItem {

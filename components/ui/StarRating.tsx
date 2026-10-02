@@ -3,23 +3,34 @@ import { StarIcon } from "./icons";
 export function StarRating({
   rating,
   reviewCount,
+  size = 13,
 }: {
   rating: number;
   reviewCount?: number;
+  size?: number;
 }) {
   const full = Math.round(rating);
 
   return (
-    <div className="flex items-center gap-1 text-xs text-neutral-500">
-      <span className="flex text-warning">
+    <div className="flex items-center gap-1 text-xs text-neutral-600">
+      <span
+        role="img"
+        aria-label={`Rated ${rating.toFixed(1)} out of 5`}
+        className="flex text-warning"
+      >
         {Array.from({ length: 5 }, (_, i) => (
-          <StarIcon key={i} width={13} height={13} filled={i < full} />
+          <StarIcon key={i} aria-hidden width={size} height={size} filled={i < full} />
         ))}
       </span>
-      <span>
+      <span aria-hidden className="font-medium text-neutral-700">
         {rating.toFixed(1)}
-        {reviewCount !== undefined && ` (${reviewCount})`}
       </span>
+      {reviewCount !== undefined && (
+        <span>
+          ({reviewCount.toLocaleString("en-US")}
+          <span className="sr-only"> reviews</span>)
+        </span>
+      )}
     </div>
   );
 }

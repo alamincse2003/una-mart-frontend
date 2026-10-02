@@ -1,184 +1,198 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getCategories, getProductBySlug, getProducts } from "@/lib/fake-data";
+import { Banknote, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import {
+  getCategoryPath,
+  getDescendantCategoryIds,
+  getProductBySlug,
+  getProducts,
+} from "@/lib/fake-data";
+import { getDiscountPercent, isLowStock, isOutOfStock } from "@/lib/product";
+import { formatPrice } from "@/lib/format";
+import { DELIVERY_FEE } from "@/lib/pricing";
+import { breadcrumbJsonLd, JsonLd, productJsonLd } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { Price } from "@/components/ui/Price";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StarRating } from "@/components/ui/StarRating";
+import { ProductGallery } from "@/components/customer/ProductGallery";
 import { ProductPurchasePanel } from "@/components/customer/ProductPurchasePanel";
 import { ProductTabs } from "@/components/customer/ProductTabs";
-import { RelatedProductsCarousel } from "@/components/customer/RelatedProductsCarousel";
-import { ProductPromoBanner } from "@/components/customer/ProductPromoBanner";
-import { TruckIcon, ShieldIcon, RefreshIcon } from "@/components/ui/icons";
+import { ProductCard } from "@/components/customer/ProductCard";
+import { ScrollRail } from "@/components/customer/ScrollRail";
 
-export default async function ProductPage({
+export function generateStaticParams() {
+  return getProducts().map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+}: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-
   const product = getProductBySlug(slug);
-  if (!product) {
-    notFound();
-  }
+  if (!product) return {};
+  const description = `${product.description} ${formatPrice(product.price)} at UNA Mart — Cash on Delivery, bKash & Nagad.`;
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: `/product/${product.slug}` },
+    openGraph: {
+      title: product.name,
+      description,
+      images: product.images.map((url) => ({ url })),
+    },
+  };
+}
 
-  const outOfStock = product.status === "out_of_stock";
-  const lowStock = !outOfStock && product.stockQty <= 5;
-  const discountPct =
-    product.originalPrice && product.originalPrice > product.price
-      ? Math.round(100 - (product.price / product.originalPrice) * 100)
-      : 0;
+export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
+  const { slug } = await params;
+  const product = getProductBySlug(slug);
+  if (!product) notFound();
 
-  const categories = getCategories();
-  const category = categories.find((c) => c.id === product.categoryId);
+  const outOfStock = isOutOfStock(product);
+  const lowStock = isLowStock(product);
+  const discountPct = getDiscountPercent(product);
+  const path = getCategoryPath(product.categoryId);
+  const category = path[path.length - 1];
 
-  const allProducts = getProducts();
-  const related = allProducts
-    .filter(
-      (p) => p.id !== product.id && p.categoryId === product.categoryId
-    )
-    .slice(0, 8);
+  // Related: same leaf category first, then the same top-level category.
+  const all = getProducts().filter((p) => p.id !== product.id && !isOutOfStock(p));
+  const sameLeaf = all.filter((p) => p.categoryId === product.categoryId);
+  const topIds = path[0] ? getDescendantCategoryIds(path[0].id) : new Set<string>();
+  const sameTop = all.filter((p) => p.categoryId !== product.categoryId && topIds.has(p.categoryId));
+  const related = [...sameLeaf, ...sameTop].slice(0, 8);
+
+  const details: [string, string][] = [
+    ["Category", path.map((c) => c.name).join(" › ") || "—"],
+    ["Product code", product.id.toUpperCase()],
+    [
+      "Availability",
+      outOfStock ? "Out of stock" : lowStock ? `Only ${product.stockQty} left` : "In stock",
+    ],
+    [
+      "Delivery",
+      product.freeDelivery
+        ? "Free delivery nationwide"
+        : `Free inside Dhaka · ${formatPrice(DELIVERY_FEE.outside_dhaka)} outside Dhaka`,
+    ],
+    ["Returns", "7-day returns on unused items"],
+  ];
 
   return (
     <>
-      <nav className="mx-auto flex max-w-7xl items-center gap-1.5 px-4 pt-6 text-xs font-medium text-neutral-500 sm:px-6">
-        <Link href="/" className="transition-colors hover:text-navy-800">
-          Home
-        </Link>
-        <ChevronRight width={13} height={13} />
-        {category && (
-          <>
+      <JsonLd data={productJsonLd(product, category)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          ...path.map((c) => ({ name: c.name, path: `/category/${c.slug}` })),
+          { name: product.name, path: `/product/${product.slug}` },
+        ])}
+      />
+
+      <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6">
+        <Breadcrumbs
+          items={[
+            ...path.map((c) => ({ label: c.name, href: `/category/${c.slug}` })),
+            { label: product.name },
+          ]}
+        />
+      </div>
+
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-6 sm:px-6 lg:grid-cols-2 lg:gap-12 [&>*]:min-w-0">
+        <ProductGallery images={product.images} name={product.name} />
+
+        <div className="flex flex-col">
+          {category && (
             <Link
               href={`/category/${category.slug}`}
-              className="transition-colors hover:text-navy-800"
+              className="w-fit text-xs font-semibold uppercase tracking-[0.12em] text-coral-700 hover:underline"
             >
               {category.name}
             </Link>
-            <ChevronRight width={13} height={13} />
-          </>
-        )}
-        <span className="text-neutral-800">{product.name}</span>
-      </nav>
-
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 py-6 sm:grid-cols-2 sm:px-6">
-        <div>
-          <div className="relative aspect-square rounded-lg bg-neutral-50">
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              sizes="(min-width: 640px) 50vw, 100vw"
-              className="object-contain p-8"
-            />
-          </div>
-          <div className="mt-3 flex gap-3">
-            {product.images.map((image, i) => (
-              <div
-                key={i}
-                className="h-20 w-20 overflow-hidden rounded-md border-2 border-coral-400 bg-neutral-50 opacity-100"
-              >
-                <div className="relative h-full w-full">
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    sizes="80px"
-                    className="object-contain p-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            {outOfStock ? "Out of stock" : lowStock ? "Low stock" : "In stock"}
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-neutral-800 sm:text-3xl">
+          )}
+          <h1 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-neutral-800 sm:text-3xl">
             {product.name}
           </h1>
 
-          {product.rating !== undefined && (
-            <div className="mt-3 flex items-center gap-3">
-              <StarRating
-                rating={product.rating}
-                reviewCount={product.reviewCount}
-              />
-              <span
-                className={`text-xs font-bold ${
-                  outOfStock
-                    ? "text-danger"
-                    : lowStock
-                      ? "text-warning"
-                      : "text-success"
-                }`}
-              >
-                {outOfStock
-                  ? "Out of Stock"
-                  : lowStock
-                    ? "Low Stock"
-                    : "In Stock"}
-              </span>
-            </div>
-          )}
-
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-3xl font-bold text-navy-800">
-              &#2547;{product.price.toLocaleString()}
-            </span>
-            {discountPct > 0 && (
-              <>
-                <span className="text-lg text-neutral-500 line-through">
-                  &#2547;{product.originalPrice!.toLocaleString()}
-                </span>
-                <span className="badge-sale">-{discountPct}% OFF</span>
-              </>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {product.rating !== undefined && (
+              <StarRating rating={product.rating} reviewCount={product.reviewCount} size={15} />
             )}
-            {product.freeDelivery && (
-              <span className="rounded-pill bg-success-bg px-3 py-1 text-xs font-bold text-success">
-                Free Delivery
-              </span>
+            <span
+              className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
+                outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"
+              }`}
+            >
+              <span aria-hidden className="h-2 w-2 rounded-full bg-current" />
+              {outOfStock ? "Out of stock" : lowStock ? `Only ${product.stockQty} left` : "In stock"}
+            </span>
+          </div>
+
+          <div className="mt-5 border-y border-neutral-200 py-5">
+            <Price
+              price={product.price}
+              originalPrice={product.originalPrice}
+              size="lg"
+              showDiscount
+            />
+            {discountPct > 0 && product.originalPrice && (
+              <p className="mt-1 text-sm font-medium text-success">
+                You save {formatPrice(product.originalPrice - product.price)}
+              </p>
             )}
           </div>
 
           <div className="mt-6">
             <ProductPurchasePanel
               productId={product.id}
+              productName={product.name}
+              price={product.price}
+              stockQty={product.stockQty}
               outOfStock={outOfStock}
             />
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-6 border-t border-neutral-200 pt-6">
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <span className="text-coral-600">
-                <TruckIcon width={18} height={18} />
-              </span>
-              Cash on Delivery available
-            </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <span className="text-coral-600">
-                <ShieldIcon width={18} height={18} />
-              </span>
-              Secure checkout
-            </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <span className="text-coral-600">
-                <RefreshIcon width={18} height={18} />
-              </span>
-              bKash & Nagad accepted
-            </div>
-          </div>
+          <ul className="mt-6 grid gap-3 rounded-lg border border-neutral-200 bg-neutral-0 p-4 sm:grid-cols-2">
+            {[
+              {
+                icon: Truck,
+                title: product.freeDelivery ? "Free delivery nationwide" : "Free delivery inside Dhaka",
+                text: product.freeDelivery
+                  ? "1–2 days in Dhaka, 3–5 days elsewhere"
+                  : `${formatPrice(DELIVERY_FEE.outside_dhaka)} outside Dhaka · 3–5 days`,
+              },
+              { icon: Banknote, title: "Cash on Delivery", text: "Or pay with bKash / Nagad" },
+              { icon: RotateCcw, title: "7-day returns", text: "Unused, in original packaging" },
+              { icon: ShieldCheck, title: "Genuine product", text: "Checked before dispatch" },
+            ].map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex items-start gap-3">
+                <Icon aria-hidden width={20} height={20} className="mt-0.5 shrink-0 text-navy-600" />
+                <div>
+                  <p className="text-sm font-semibold text-neutral-800">{title}</p>
+                  <p className="text-xs text-neutral-600">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <ProductTabs product={product} />
-      </div>
+      <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+        <ProductTabs product={product} details={details} />
+      </section>
 
-      <RelatedProductsCarousel products={related} />
-
-      <ProductPromoBanner />
+      {related.length > 0 && (
+        <section aria-labelledby="related" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+          <SectionHeader id="related" title="You may also like" />
+          <div className="mt-6">
+            <ScrollRail label="Related products">
+              {related.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </ScrollRail>
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -1,18 +1,25 @@
+import type { Metadata } from "next";
 import { PageBanner } from "@/components/customer/PageBanner";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How UNA Mart collects, uses and protects your personal information.",
+  alternates: { canonical: "/privacy-policy" },
+};
 
 export default function PrivacyPolicyPage() {
   return (
     <>
       <PageBanner title="Privacy Policy" />
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <div className="flex flex-col gap-8 text-sm leading-relaxed text-neutral-600">
+        <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-neutral-700">
           <p>
             Your privacy matters to us. This policy explains what information
             we collect and how we use it.
           </p>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Information We Collect
             </h2>
             <p className="mt-2">
@@ -23,7 +30,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               How We Use Your Information
             </h2>
             <p className="mt-2">
@@ -34,7 +41,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Payment Information
             </h2>
             <p className="mt-2">
@@ -45,18 +52,19 @@ export default function PrivacyPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Cookies &amp; Local Storage
             </h2>
             <p className="mt-2">
               We use your browser&apos;s local storage to remember your cart
-              between visits. No tracking cookies are used for advertising
-              purposes.
+              and wishlist between visits, and a single essential cookie to
+              keep your cart session. No tracking cookies are used for
+              advertising purposes.
             </p>
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Contacting Us
             </h2>
             <p className="mt-2">

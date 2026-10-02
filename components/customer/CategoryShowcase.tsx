@@ -1,92 +1,77 @@
-"use client";
-
-import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Category } from "@/lib/types";
-import { ArrowRightIcon } from "@/components/ui/icons";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Reveal } from "./Reveal";
 
-// Static bg photo per top-level category slug. No lifestyle photography
-// exists yet, so these reuse the closest real product photo — swap for
-// real category shots once available.
+// Representative photo per top-level category slug. Packshots are shown
+// uncropped on a light tile (they're shot on white) — swap for real
+// category/lifestyle photography once available.
 const CATEGORY_IMAGE: Record<string, string> = {
-  gadgets: "/products/image3.webp",
+  gadgets: "/products/image1.webp",
   fashion: "/products/Three Piece.webp",
   accessories: "/products/Watch4.webp",
   sports: "/products/Shoes3.webp",
 };
 
-export function CategoryShowcase({ categories }: { categories: Category[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
+export function CategoryShowcase({
+  categories,
+  productCounts,
+}: {
+  categories: Category[];
+  /** Products per top-level category id, including subcategories. */
+  productCounts: Record<string, number>;
+}) {
   const topLevel = categories.filter((c) => !c.parentId);
 
-  const scrollByCard = (direction: 1 | -1) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const cardWidth = track.firstElementChild?.clientWidth ?? 260;
-    track.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" });
-  };
-
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-coral-600">
-            Shop by category
-          </p>
-          <h2 className="mt-1 text-2xl font-bold text-neutral-800">
-            Find what you need
-          </h2>
-        </div>
+    <section aria-labelledby="shop-by-category" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+      <SectionHeader
+        id="shop-by-category"
+        eyebrow="Shop by category"
+        title="Find what you need"
+        action={{ label: "All products", href: "/products" }}
+      />
 
-        <div className="hidden items-center gap-2 sm:flex">
-          <button
-            type="button"
-            aria-label="Scroll left"
-            onClick={() => scrollByCard(-1)}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition-colors hover:bg-neutral-100"
-          >
-            <ChevronLeft width={18} height={18} />
-          </button>
-          <button
-            type="button"
-            aria-label="Scroll right"
-            onClick={() => scrollByCard(1)}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-coral-600 text-neutral-0 transition-colors hover:bg-coral-700"
-          >
-            <ChevronRight width={18} height={18} />
-          </button>
-        </div>
-      </div>
-
-      <div
-        ref={trackRef}
-        className="mt-6 flex gap-4 overflow-x-auto scroll-smooth pb-2 scrollbar-none"
-      >
-        {topLevel.map((category) => (
-          <Link
-            key={category.id}
-            href={`/category/${category.slug}`}
-            className="group relative aspect-3/4 w-45 shrink-0 overflow-hidden rounded-lg shadow-sm transition-shadow hover:shadow-lg sm:w-60"
-          >
-            <Image
-              src={CATEGORY_IMAGE[category.slug] ?? "/products/image2.webp"}
-              alt=""
-              fill
-              sizes="240px"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-navy-900/85 via-navy-900/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 text-neutral-0">
-              <h3 className="text-lg font-bold">{category.name}</h3>
-              <span className="mt-1 flex translate-y-1.5 items-center gap-1.5 text-xs font-semibold text-neutral-100 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
-                Explore <ArrowRightIcon width={13} height={13} />
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Reveal className="mt-6">
+        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {topLevel.map((category) => (
+            <li key={category.id} data-reveal>
+              <Link
+                href={`/category/${category.slug}`}
+                className="group flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200 bg-neutral-0 transition-[border-color,box-shadow] hover:border-neutral-300 hover:shadow-md"
+              >
+                <div className="relative aspect-square bg-neutral-50">
+                  <Image
+                    src={CATEGORY_IMAGE[category.slug] ?? "/products/image2.webp"}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 290px, 50vw"
+                    className="object-contain p-5 transition-transform duration-500 group-hover:scale-105 sm:p-8"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-2 p-3 sm:p-4">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-neutral-800 sm:text-lg">
+                      {category.name}
+                    </h3>
+                    <p className="text-xs text-neutral-600">
+                      {productCounts[category.id] ?? 0} products
+                    </p>
+                  </div>
+                  <span
+                    aria-hidden
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-50 text-navy-800 transition-colors group-hover:bg-navy-800 group-hover:text-neutral-0"
+                  >
+                    <ArrowRight width={16} height={16} />
+                  </span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Reveal>
     </section>
   );
 }

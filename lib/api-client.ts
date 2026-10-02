@@ -1,7 +1,13 @@
 // Single place all frontend data fetching goes through. In Phase 1 it
 // points at /app/api/* (fake). When the NestJS backend is ready, only
 // NEXT_PUBLIC_API_URL changes — components never call fetch directly.
-import type { Cart, Category, Product } from "./types";
+import type {
+  Cart,
+  Category,
+  CreateOrderRequest,
+  CreateOrderResponse,
+  Product,
+} from "./types";
 
 const API_PATH = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
@@ -18,6 +24,15 @@ function resolveBaseUrl(): string {
   return `${origin}${API_PATH}`;
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${resolveBaseUrl()}${path}`, {
     ...init,
@@ -26,17 +41,26 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`Request to ${path} failed with status ${res.status}`);
+    // Surface the server's own message (e.g. "Only 3 in stock") so the UI
+    // can show it instead of a generic failure.
+    const body = (await res.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    throw new ApiError(
+      body?.message ?? `Request to ${path} failed`,
+      res.status
+    );
   }
 
   return res.json() as Promise<T>;
 }
 
 export const apiClient = {
-  getProducts(params?: { category?: string; search?: string }) {
+  getProducts(params?: { category?: string; search?: string; ids?: string[] }) {
     const query = new URLSearchParams();
     if (params?.category) query.set("category", params.category);
     if (params?.search) query.set("search", params.search);
+    if (params?.ids) query.set("ids", params.ids.join(","));
     const qs = query.toString();
     return request<Product[]>(`/products${qs ? `?${qs}` : ""}`);
   },
@@ -69,5 +93,18 @@ export const apiClient = {
 
   removeCartItem(itemId: string) {
     return request<Cart>(`/cart/items/${itemId}`, { method: "DELETE" });
+  },
+
+  /** Guest order lookup — phone must match the one used at checkout. */
+  getOrder(orderId: string, phone: string) {
+    const qs = new URLSearchParams({ phone }).toString();
+    return request<CreateOrderResponse>(`/orders/${encodeURIComponent(orderId)}?${qs}`);
+  },
+
+  createOrder(input: CreateOrderRequest) {
+    return request<CreateOrderResponse>("/orders", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
   },
 };

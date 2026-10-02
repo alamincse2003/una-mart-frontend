@@ -2,43 +2,40 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { Category, Product } from "@/lib/types";
-import { MenuIcon } from "@/components/ui/icons";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Menu } from "lucide-react";
+import type { Category } from "@/lib/types";
 import { TopBar } from "./TopBar";
 import { MainNav } from "./MainNav";
 import { HeaderActions } from "./HeaderActions";
 import { MobileNav } from "./MobileNav";
-import { MegaMenu } from "./MegaMenu";
+import { MegaMenu, type MenuProduct } from "./MegaMenu";
+import { SearchForm } from "./SearchForm";
 
-// Storefront header: a dark utility TopBar, then the main row
-// (logo / MainNav / HeaderActions). Below `lg`, MainNav hides and a
-// hamburger button opens MobileNav instead — see that file for the
-// mobile menu's own layout and animation.
+// Hover-intent delay so sweeping the mouse across the nav doesn't flash
+// every category's menu.
+const OPEN_DELAY_MS = 120;
+const CLOSE_DELAY_MS = 150;
+
+// Storefront header: dark utility TopBar (md+), then the main row (logo /
+// MainNav / search / actions), then a full-width search row on mobile.
 //
-// categories/products are passed in as props, fetched server-side by
-// CustomerLayout (app/(customer)/layout.tsx) via lib/fake-data.ts — this
-// data doesn't need client-side fetching (no auth, no per-user state), so
-// keeping it server-fetched avoids a whole class of client-fetch failure
-// (e.g. a self-fetch that gets blocked by hosting-level auth) for data
-// that's the same for every visitor anyway.
-//
-// The MegaMenu is rendered here (not inside MainNav) because it needs to
-// span the full header width, not just the width of the nav links —
-// MainNav reports which category is hovered via onHoverCategory, and this
-// component owns `hoveredCategoryId` so both MainNav and MegaMenu agree on
-// which category is active. See MegaMenu.tsx for the panel itself.
+// categories + menuProducts come from CustomerLayout (server). The menu
+// only gets a few product names per category — never the whole catalog —
+// so the header's client payload stays small as the catalog grows.
 export function Header({
   categories,
-  products,
+  menuProducts,
 }: {
   categories: Category[];
-  products: Product[];
+  menuProducts: Record<string, MenuProduct[]>;
 }) {
+  const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(
-    null
-  );
+  const [menuCategoryId, setMenuCategoryId] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const headerRef = useRef<HTMLElement>(null);
 
   const topLevelCategories = useMemo(
     () => categories.filter((c) => !c.parentId),
@@ -56,74 +53,125 @@ export function Header({
     return map;
   }, [categories]);
 
-  const productsByCategory = useMemo(() => {
-    const map = new Map<string, Product[]>();
-    for (const product of products) {
-      const bucket = map.get(product.categoryId) ?? [];
-      bucket.push(product);
-      map.set(product.categoryId, bucket);
+  const openMenu = useCallback((id: string, immediate = false) => {
+    clearTimeout(timer.current);
+    if (immediate) setMenuCategoryId(id);
+    else timer.current = setTimeout(() => setMenuCategoryId(id), OPEN_DELAY_MS);
+  }, []);
+
+  const closeMenu = useCallback((immediate = true) => {
+    clearTimeout(timer.current);
+    if (immediate) setMenuCategoryId(null);
+    else timer.current = setTimeout(() => setMenuCategoryId(null), CLOSE_DELAY_MS);
+  }, []);
+
+  // Close the desktop menu on navigation, Escape, and focus/click outside.
+  // (Mobile nav links close their drawer explicitly via onClose.)
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setMenuCategoryId(null);
+  }
+
+  useEffect(() => {
+    if (!menuCategoryId) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeMenu();
     }
-    return map;
-  }, [products]);
+    function onFocusIn(e: FocusEvent) {
+      if (!headerRef.current?.contains(e.target as Node)) closeMenu();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, [menuCategoryId, closeMenu]);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const activeCategory = topLevelCategories.find((c) => c.id === menuCategoryId);
 
   return (
     <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-80 focus:rounded-md focus:bg-navy-800 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-neutral-0"
+      >
+        Skip to content
+      </a>
+
       <header
-        className="sticky top-0 z-50 bg-neutral-0/80 shadow-sm backdrop-blur-md"
-        onMouseLeave={() => setHoveredCategoryId(null)}
+        ref={headerRef}
+        className="sticky top-0 z-50 border-b border-neutral-200 bg-neutral-0"
+        onMouseLeave={() => closeMenu(false)}
+        onMouseEnter={() => clearTimeout(timer.current)}
       >
         <TopBar />
 
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-1 sm:px-6 xl:gap-4">
-          <Link href="/" className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:h-18 xl:gap-6">
+          <button
+            type="button"
+            aria-label="Open menu"
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(true)}
+            className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-navy-800 transition-colors hover:bg-neutral-100 lg:hidden"
+          >
+            <Menu aria-hidden width={22} height={22} />
+          </button>
+
+          <Link
+            href="/"
+            aria-label="UNA Mart home"
+            className="relative h-12 w-12 shrink-0 lg:h-14 lg:w-14"
+          >
             <Image
               src="/una-logo.webp"
-              alt="UNA Mart"
+              alt=""
               fill
               priority
-              sizes="96px"
+              sizes="56px"
               className="object-contain"
             />
           </Link>
 
           <MainNav
-            categories={categories}
-            activeCategoryId={hoveredCategoryId}
-            onHoverCategory={setHoveredCategoryId}
+            topLevelCategories={topLevelCategories}
+            hasChildren={(id) => (subcategoriesByParent.get(id)?.length ?? 0) > 0}
+            activeCategoryId={menuCategoryId}
+            onOpenCategory={openMenu}
+            onClose={() => closeMenu(false)}
           />
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="ml-auto flex min-w-0 items-center gap-2">
+            <SearchForm className="hidden w-56 md:flex xl:w-72" />
             <HeaderActions />
-
-            <button
-              type="button"
-              aria-label="Open menu"
-              onClick={() => setMobileNavOpen(true)}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-navy-800 transition-colors hover:bg-neutral-100 lg:hidden"
-            >
-              <MenuIcon />
-            </button>
           </div>
         </div>
 
-        {hoveredCategoryId && (
+        <div className="px-4 pb-3 md:hidden">
+          <SearchForm />
+        </div>
+
+        {activeCategory && (
           <MegaMenu
-            topLevelCategories={topLevelCategories}
+            key={activeCategory.id}
+            activeCategory={activeCategory}
             subcategoriesByParent={subcategoriesByParent}
-            activeCategoryId={hoveredCategoryId}
-            productsByCategory={productsByCategory}
+            menuProducts={menuProducts}
+            onNavigate={() => closeMenu()}
           />
         )}
       </header>
 
-      {/* Rendered as a header sibling, not a descendant — a fixed-position
-          panel inside an ancestor with backdrop-blur/opacity (the header
-          above) can inherit that translucency and bleed the page behind it
-          through what should be a solid white panel. */}
+      {/* Rendered as a header sibling, not a descendant, so the fixed
+          drawer isn't clipped by the sticky header's stacking context. */}
       <MobileNav
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        categories={categories}
+        topLevelCategories={topLevelCategories}
+        subcategoriesByParent={subcategoriesByParent}
       />
     </>
   );

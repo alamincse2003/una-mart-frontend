@@ -28,28 +28,43 @@ started (Phase 2), not before.
 una-mart-frontend/                (this repo, root of the Next.js app)
 ├── app/
 │   ├── (customer)/                route group — public storefront
-│   │   ├── page.tsx
-│   │   ├── category/[slug]/
+│   │   ├── page.tsx               homepage
+│   │   ├── products/, category/[slug]/, search/
 │   │   ├── product/[slug]/
-│   │   ├── cart/
-│   │   ├── checkout/              not built yet
-│   │   └── account/               not built yet
+│   │   ├── cart/, checkout/       checkout → POST /api/orders
+│   │   ├── wishlist/, track-order/, login/, register/
+│   │   ├── about/, contact/, faq/, *-policy/, terms/
+│   │   ├── not-found.tsx, error.tsx, [...missing]/ (branded 404)
+│   │   └── account/               not built yet (needs auth backend)
 │   ├── (admin)/                   route group — admin panel, not built yet
+│   ├── sitemap.ts, robots.ts
 │   └── api/                       fake data lives here in Phase 1
-│       ├── products/route.ts
+│       ├── products/route.ts      ?category= (incl. subcategories) &search= &ids=
 │       ├── products/[slug]/route.ts
 │       ├── categories/route.ts
-│       └── cart/route.ts, cart/items/route.ts, cart/items/[id]/route.ts
+│       ├── cart/route.ts, cart/items/route.ts, cart/items/[id]/route.ts
+│       └── orders/route.ts (POST), orders/[id]/route.ts (GET, phone-verified)
 ├── components/
-│   ├── ui/                        buttons, inputs, cards — design-token driven
-│   └── customer/
+│   ├── ui/                        design-system primitives: Button/ButtonLink,
+│   │                              Field, Drawer, Price, SectionHeader,
+│   │                              Breadcrumbs, EmptyState, QuantityStepper…
+│   └── customer/                  storefront components (ProductCard is the
+│                                  single product card used everywhere)
 ├── lib/
-│   ├── api-client.ts               single place all fetch calls go through
+│   ├── api-client.ts               single place all client fetch calls go through
 │   ├── types.ts                    shared types matching SYSTEM_DESIGN.md
-│   ├── cart-context.tsx            real cart state (React context)
-│   ├── fake-data.ts, fake-cart-store.ts   Phase 1 in-memory data
+│   ├── cart-context.tsx            real cart state + mini-cart drawer state
+│   ├── wishlist-context.tsx        guest wishlist (localStorage; no API yet)
+│   ├── toast-context.tsx           accessible toast feedback
+│   ├── pricing.ts                  subtotal / savings / delivery-fee rules
+│   ├── product.ts, format.ts       discount + stock rules, ৳ price formatting
+│   ├── site.ts                     contact details, payment labels, site URL
+│   ├── seo.tsx                     JSON-LD helpers (Product, Breadcrumb)
+│   ├── motion.ts                   prefers-reduced-motion check for GSAP
+│   ├── fake-data.ts, fake-cart-store.ts, fake-order-store.ts   Phase 1 in-memory data
 │   └── session.ts                  cookie-based session id for the fake cart
 └── app/globals.css                 navy/coral design tokens (Tailwind v4 @theme)
+                                    + component classes in @layer components
 ```
 
 ### Target state (once Phase 2's NestJS backend starts)

@@ -1,18 +1,25 @@
+import type { Metadata } from "next";
 import { PageBanner } from "@/components/customer/PageBanner";
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions",
+  description: "The terms that apply when you shop at UNA Mart.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   return (
     <>
       <PageBanner title="Terms & Conditions" />
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <div className="flex flex-col gap-8 text-sm leading-relaxed text-neutral-600">
+        <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-neutral-700">
           <p>
             By using UNA Mart, you agree to the terms below. Please read them
             carefully before placing an order.
           </p>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               1. Using Our Platform
             </h2>
             <p className="mt-2">
@@ -24,7 +31,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               2. Pricing &amp; Availability
             </h2>
             <p className="mt-2">
@@ -37,7 +44,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               3. Payments
             </h2>
             <p className="mt-2">
@@ -48,7 +55,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               4. Delivery
             </h2>
             <p className="mt-2">
@@ -59,7 +66,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               5. Returns
             </h2>
             <p className="mt-2">
@@ -69,7 +76,7 @@ export default function TermsPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               6. Changes to These Terms
             </h2>
             <p className="mt-2">

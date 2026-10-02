@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { removeCartItem, updateCartItem } from "@/lib/fake-cart-store";
+import {
+  getCart,
+  removeCartItem,
+  updateCartItem,
+} from "@/lib/fake-cart-store";
+import { getProductById } from "@/lib/fake-data";
 import { getOrCreateSessionId } from "@/lib/session";
 
 export async function PATCH(
@@ -11,14 +16,16 @@ export async function PATCH(
   const body = await request.json();
   const { quantity } = body as { quantity: number };
 
-  if (!quantity || quantity < 1) {
+  if (!Number.isInteger(quantity) || quantity < 1) {
     return NextResponse.json(
       { message: "A positive quantity is required" },
       { status: 400 }
     );
   }
 
-  const cart = updateCartItem(sessionId, id, quantity);
+  const item = getCart(sessionId).items.find((i) => i.id === id);
+  const stock = item ? (getProductById(item.productId)?.stockQty ?? 0) : 0;
+  const cart = updateCartItem(sessionId, id, Math.min(quantity, Math.max(stock, 1)));
   return NextResponse.json(cart);
 }
 

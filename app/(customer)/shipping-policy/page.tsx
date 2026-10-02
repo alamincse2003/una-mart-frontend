@@ -1,18 +1,25 @@
+import type { Metadata } from "next";
 import { PageBanner } from "@/components/customer/PageBanner";
+
+export const metadata: Metadata = {
+  title: "Shipping & Delivery Policy",
+  description: "Delivery areas, charges and timelines for UNA Mart orders across Bangladesh.",
+  alternates: { canonical: "/shipping-policy" },
+};
 
 export default function ShippingPolicyPage() {
   return (
     <>
       <PageBanner title="Shipping & Delivery Policy" />
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <div className="flex flex-col gap-8 text-sm leading-relaxed text-neutral-600">
+        <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-neutral-700">
           <p>
             We deliver across Bangladesh, from Dhaka to every district. Here&apos;s
             what to expect once your order is placed.
           </p>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Delivery Areas &amp; Charges
             </h2>
             <p className="mt-2">
@@ -23,7 +30,7 @@ export default function ShippingPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Delivery Timeline
             </h2>
             <p className="mt-2">
@@ -34,7 +41,7 @@ export default function ShippingPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Order Tracking
             </h2>
             <p className="mt-2">
@@ -44,7 +51,7 @@ export default function ShippingPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Payment on Delivery
             </h2>
             <p className="mt-2">
@@ -55,7 +62,7 @@ export default function ShippingPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Delays
             </h2>
             <p className="mt-2">

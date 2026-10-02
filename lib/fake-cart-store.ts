@@ -58,3 +58,9 @@ export function removeCartItem(sessionId: string, itemId: string): Cart {
   cart.items = cart.items.filter((i) => i.id !== itemId);
   return cart;
 }
+
+export function clearCart(sessionId: string): Cart {
+  const cart = getOrCreateCart(sessionId);
+  cart.items = [];
+  return cart;
+}

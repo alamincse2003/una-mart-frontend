@@ -99,33 +99,29 @@
   --color-action-cta-hover: var(--color-coral-700);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg-page: var(--color-neutral-900);
-    --color-bg-surface: #1a2126;
-    --color-bg-raised: #232b31;
+/* Dark mode is intentionally NOT enabled yet. A previous
+   prefers-color-scheme block flipped these role tokens, but components use
+   the light ramp directly (text-neutral-800, bg-neutral-0 cards), so dark-mode
+   phones got light-on-light headings. Re-introduce it as a deliberate
+   project — every component needs to read role tokens first. */
+:root {
+  color-scheme: light;
+}
 
-    --color-text-primary: var(--color-neutral-50); /* 17.10:1 (AAA) */
-    --color-text-secondary: #c3ccd4; /* 11.10:1 (AAA) */
-    --color-text-muted: #93a0ab; /*  6.75:1 (AA)  */
-    --color-text-brand: var(--color-navy-200); /*  9.61:1 (AAA) */
-
-    --color-border: #2c353b;
-    --color-border-strong: #3d474e;
-
-    /* Coral shifts lighter in dark mode — coral-400 only manages 6.37:1,
-       coral-200 gets 10.60:1 and reads far better on dark surfaces. */
-    --color-action-cta: var(--color-coral-400);
+html {
+  /* Anchor jumps (e.g. /#deals) land below the sticky header. */
+  scroll-padding-top: 96px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
-
-  .btn-cta {
-    color: var(--color-navy-900);
-  } /* still dark text on the orange fill */
 }
 
 body {
   background: var(--color-bg-page);
   color: var(--color-text-primary);
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Browsers default <button> to cursor: default, not pointer — every custom
@@ -135,78 +131,156 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-/* Shared text input / textarea style — bordered field with the coral focus
-   ring used throughout checkout, contact and other forms. */
+/* One focus ring for every interactive element. navy-400 is 5.50:1 on
+   white, so it clears WCAG's 3:1 non-text contrast rule; mouse users never
+   see it thanks to :focus-visible. */
+:focus-visible {
+  outline: 3px solid var(--color-navy-400);
+  outline-offset: 2px;
+}
+
+/* Hidden horizontal scrollbars for swipeable rails (carousels). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Component classes live in the components layer so Tailwind utilities
+   (e.g. w-full, pr-12, rounded-pill) can still override them. */
+@layer components {
+/* ==========================================================================
+   FORM FIELDS
+   16px text on mobile stops iOS Safari from zooming the page on focus.
+   ========================================================================== */
 .input-base {
   width: 100%;
+  min-height: 44px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  padding: 8px 12px;
-  font-size: 14px;
-  outline: none;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-neutral-0);
+  color: var(--color-text-primary);
+  padding: 10px 14px;
+  font-size: 16px;
+  line-height: 1.4;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+@media (min-width: 640px) {
+  .input-base {
+    font-size: 14px;
+  }
+}
+.input-base::placeholder {
+  color: var(--color-neutral-500);
+}
+.input-base:hover {
+  border-color: var(--color-neutral-400);
 }
 .input-base:focus {
-  border-color: var(--color-coral-400);
+  outline: none;
+  border-color: var(--color-navy-400);
+  box-shadow: 0 0 0 3px rgb(63 108 153 / 0.2);
+}
+.input-base[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+.input-base[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgb(192 39 31 / 0.15);
 }
 
 /* ==========================================================================
    BUTTON RULES — the part that decides whether the site passes an audit
+   Every variant shares the same box: 44px tall (minimum touch target),
+   600 weight, md radius. Size modifiers: .btn-sm (36px), .btn-lg (52px).
    ========================================================================== */
+.btn-primary,
+.btn-cta,
+.btn-secondary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms;
+}
+.btn-sm {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  gap: 6px;
+}
+.btn-lg {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 16px;
+}
+.btn-primary:disabled,
+.btn-cta:disabled,
+.btn-secondary:disabled,
+.btn-ghost:disabled,
+[aria-disabled="true"].btn-primary,
+[aria-disabled="true"].btn-cta {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Primary action — navy fill, white text. 14.54:1 (AAA). Always safe. */
 .btn-primary {
   background: var(--color-action-primary);
   color: var(--color-neutral-0);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
+  border: 1.5px solid transparent;
 }
-.btn-primary:hover {
+.btn-primary:not(:disabled):hover {
   background: var(--color-action-primary-hover);
 }
 
 /* CTA — coral fill. Two valid approaches, pick ONE and stay consistent.
    A) coral-600 fill + white text at 18px+ / 14px bold = 4.24:1, passes AA large.
    B) coral-400 fill + navy-800 text = 5.13:1, passes AA at ALL sizes.
-   Approach B keeps the brighter brand orange. That's what's used here. */
+   Approach B keeps the brighter brand orange. That's what's used here.
+   Reserve it for the one action per screen that makes money. */
 .btn-cta {
   background: var(--color-coral-400);
-  color: var(--color-navy-800); /* 5.13:1 — NOT white */
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
+  color: var(--color-navy-900); /* 5.13:1+ — NOT white */
+  border: 1.5px solid transparent;
 }
-.btn-cta:hover {
+.btn-cta:not(:disabled):hover {
   background: var(--color-coral-500);
 }
 
 /* Secondary — outlined, no fill */
 .btn-secondary {
-  background: transparent;
+  background: var(--color-neutral-0);
   color: var(--color-navy-800);
   border: 1.5px solid var(--color-navy-800);
-  border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
 }
-.btn-secondary:hover {
+.btn-secondary:not(:disabled):hover {
   background: var(--color-navy-50);
 }
 
-/* Focus ring — required for keyboard users, often forgotten */
-.btn-primary:focus-visible,
-.btn-cta:focus-visible,
-.btn-secondary:focus-visible {
-  outline: 3px solid var(--color-navy-400);
-  outline-offset: 2px;
+/* Ghost — quiet tinted button for low-emphasis actions (product cards). */
+.btn-ghost {
+  background: var(--color-navy-50);
+  color: var(--color-navy-800);
+  border: 1.5px solid transparent;
+}
+.btn-ghost:not(:disabled):hover {
+  background: var(--color-navy-800);
+  color: var(--color-neutral-0);
 }
 
 /* Discount / sale badge — coral-800 text on coral-50, 8.58:1-equivalent (AAA) */
@@ -216,20 +290,36 @@ button:not(:disabled) {
   border-radius: var(--radius-pill);
   padding: 4px 12px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 }
-@keyframes fade-rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+}
+
+/* Cart-count bump when an item is added — header only, never on grids. */
+@keyframes bump {
+  0% {
+    transform: scale(1);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  40% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
   }
 }
-.animate-fade-rise-in {
-  animation: fade-rise-in 0.4s ease-out both;
+.animate-bump {
+  animation: bump 350ms ease-out;
+}
+
+/* Respect the OS-level "reduce motion" setting everywhere, including the
+   CSS transitions above. GSAP code checks lib/motion.ts separately. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ==========================================================================

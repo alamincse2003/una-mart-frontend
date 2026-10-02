@@ -1,39 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Check, ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
+import { Button } from "@/components/ui/Button";
 
-// Compact "+ Cart" button used on ProductCardCompact — a smaller, icon-led
-// alternative to AddToCartButton's full-width label, matching the
-// Best Selling Product figma reference.
-export function AddToCartPill({
+// Card-level add-to-cart. Quiet "ghost" style so a grid of cards isn't a
+// wall of orange; success opens the cart drawer (from CartProvider).
+export function AddToCartButton({
   productId,
+  productName,
   disabled,
 }: {
   productId: string;
+  productName: string;
   disabled?: boolean;
 }) {
   const { addItem } = useCart();
   const [status, setStatus] = useState<"idle" | "adding" | "added">("idle");
 
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleClick = async () => {
     setStatus("adding");
-    await addItem(productId, 1);
-    setStatus("added");
-    setTimeout(() => setStatus("idle"), 1500);
+    const ok = await addItem(productId, 1);
+    setStatus(ok ? "added" : "idle");
+    if (ok) setTimeout(() => setStatus("idle"), 1500);
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={handleClick}
       disabled={disabled || status === "adding"}
-      className="flex cursor-pointer items-center gap-1 rounded-pill bg-coral-400 px-3 py-1.5 text-xs font-bold text-navy-900 transition-colors hover:bg-coral-500 disabled:cursor-not-allowed disabled:opacity-50"
+      aria-label={disabled ? `${productName} is out of stock` : `Add ${productName} to cart`}
+      className="w-full"
     >
-      <Plus width={14} height={14} />
-      {status === "added" ? "Added" : "Cart"}
-    </button>
+      {status === "added" ? (
+        <Check aria-hidden width={15} height={15} />
+      ) : (
+        <ShoppingCart aria-hidden width={15} height={15} />
+      )}
+      {disabled
+        ? "Out of stock"
+        : status === "adding"
+          ? "Adding…"
+          : status === "added"
+            ? "Added"
+            : "Add to cart"}
+    </Button>
   );
 }

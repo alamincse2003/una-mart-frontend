@@ -1,59 +1,61 @@
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { ButtonLink } from "@/components/ui/Button";
+import { Reveal } from "./Reveal";
 
-// Reusable full-bleed promo banner — dark photo bg, bold 2-line heading
-// with one accent-colored word, subtext, split-button CTA. Same visual
-// language as Hero.tsx but without the eyebrow/stats row, for secondary
-// CTA placements further down a page (homepage today, category pages
-// later).
+// Reusable promo banner: copy + CTA on a navy panel, product image framed
+// on its own light tile (packshots are shot on white — forcing them under
+// a dark gradient makes them look muddy).
 export function PromoBanner({
   image,
+  eyebrow,
   title,
-  accentWord,
+  accent,
   description,
   ctaLabel,
   ctaHref,
 }: {
   image: string;
+  eyebrow?: string;
   title: string;
-  accentWord: string;
+  /** Optional trailing words of the title shown in the accent colour. */
+  accent?: string;
   description: string;
   ctaLabel: string;
   ctaHref: string;
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <div className="relative overflow-hidden rounded-lg">
-        <div className="relative min-h-88">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+      <Reveal className="grid overflow-hidden rounded-lg bg-navy-800 sm:grid-cols-[1.2fr_1fr]">
+        <div className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12" data-reveal>
+          {eyebrow && (
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-coral-200">
+              {eyebrow}
+            </p>
+          )}
+          <h2 className="mt-2 text-2xl font-bold leading-tight tracking-tight text-neutral-0 sm:text-3xl lg:text-4xl">
+            {title} {accent && <span className="text-coral-200">{accent}</span>}
+          </h2>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-navy-100 sm:text-base">
+            {description}
+          </p>
+          <div className="mt-6">
+            <ButtonLink href={ctaHref} variant="cta" size="lg">
+              {ctaLabel}
+              <ArrowRight aria-hidden width={18} height={18} />
+            </ButtonLink>
+          </div>
+        </div>
+        <div className="relative m-4 mt-0 min-h-56 rounded-md bg-neutral-0 sm:m-6 sm:ml-0 sm:min-h-72" data-reveal>
           <Image
             src={image}
             alt=""
             fill
-            sizes="(min-width: 1280px) 1152px, 100vw"
-            className="object-cover"
+            sizes="(min-width: 640px) 40vw, 100vw"
+            className="object-contain p-6 sm:p-10"
           />
-          <div className="absolute inset-0 bg-linear-to-r from-navy-900 via-navy-900/80 to-navy-900/20" />
-
-          <div className="relative flex h-full items-center px-6 py-12 sm:px-10">
-            <div className="max-w-md">
-              <h2 className="text-3xl font-bold leading-tight text-neutral-0 sm:text-4xl">
-                {title} <span className="text-coral-400">{accentWord}</span>
-              </h2>
-              <p className="mt-3 text-sm text-navy-100">{description}</p>
-              <Link
-                href={ctaHref}
-                className="mt-6 inline-flex items-center gap-3 rounded-md bg-coral-400 py-1.5 pl-5 pr-1.5 text-sm font-bold text-navy-900 transition-colors hover:bg-coral-500"
-              >
-                {ctaLabel}
-                <span className="flex h-8 w-8 items-center justify-center rounded bg-navy-900 text-neutral-0">
-                  <ArrowUpRight width={16} height={16} />
-                </span>
-              </Link>
-            </div>
-          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

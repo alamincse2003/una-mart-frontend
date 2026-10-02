@@ -1,18 +1,25 @@
+import type { Metadata } from "next";
 import { PageBanner } from "@/components/customer/PageBanner";
+
+export const metadata: Metadata = {
+  title: "Return Policy",
+  description: "UNA Mart return window, non-returnable items and refund timelines.",
+  alternates: { canonical: "/return-policy" },
+};
 
 export default function ReturnPolicyPage() {
   return (
     <>
       <PageBanner title="Return Policy" />
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <div className="flex flex-col gap-8 text-sm leading-relaxed text-neutral-600">
+        <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-neutral-700">
           <p>
             We want you to be fully satisfied with every order. If something
             isn&apos;t right, here&apos;s how returns work at UNA Mart.
           </p>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Return Window
             </h2>
             <p className="mt-2">
@@ -23,7 +30,7 @@ export default function ReturnPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Non-Returnable Items
             </h2>
             <p className="mt-2">
@@ -34,7 +41,7 @@ export default function ReturnPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Damaged or Incorrect Items
             </h2>
             <p className="mt-2">
@@ -46,7 +53,7 @@ export default function ReturnPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               How to Request a Return
             </h2>
             <p className="mt-2">
@@ -58,7 +65,7 @@ export default function ReturnPolicyPage() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-neutral-800">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-800">
               Refund Timeline
             </h2>
             <p className="mt-2">

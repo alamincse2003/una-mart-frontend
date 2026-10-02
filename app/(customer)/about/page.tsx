@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -9,7 +10,14 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { PageBanner } from "@/components/customer/PageBanner";
-import { ProductPromoBanner } from "@/components/customer/ProductPromoBanner";
+import { PromoBanner } from "@/components/customer/PromoBanner";
+import { buttonClass } from "@/components/ui/Button";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description:
+    "UNA Mart brings gadgets, fashion, accessories and more together in one trusted online store, delivering across Bangladesh.",
+};
 
 const STATS = [
   { value: "10K+", label: "Happy Customers" },
@@ -63,7 +71,11 @@ const TRUST_REASONS = [
 export default function AboutPage() {
   return (
     <>
-      <PageBanner title="About Us" />
+      <PageBanner
+        title="About UNA Mart"
+        breadcrumbs={[{ label: "About Us" }]}
+        description="Everything you need, in one place — built for how Bangladesh shops."
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -94,7 +106,7 @@ export default function AboutPage() {
                   <p className="text-2xl font-extrabold text-navy-800">
                     {stat.value}
                   </p>
-                  <p className="mt-1 text-xs text-neutral-500">{stat.label}</p>
+                  <p className="mt-1 text-xs text-neutral-600">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -131,7 +143,7 @@ export default function AboutPage() {
             </ul>
             <Link
               href="/products"
-              className="btn-cta mt-6 inline-flex items-center gap-2"
+              className={buttonClass("cta", "md", "mt-6")}
             >
               Explore Our Products
               <ArrowUpRight width={16} height={16} />
@@ -188,7 +200,7 @@ export default function AboutPage() {
             </ul>
             <Link
               href="/products"
-              className="btn-cta mt-6 inline-flex items-center gap-2"
+              className={buttonClass("cta", "md", "mt-6")}
             >
               Explore Our Products
               <ArrowUpRight width={16} height={16} />
@@ -213,7 +225,7 @@ export default function AboutPage() {
                 key={title}
                 className="rounded-lg border border-navy-700 bg-navy-800 p-6 text-left"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-md bg-coral-400/15 text-coral-400">
+                <span className="flex h-11 w-11 items-center justify-center rounded-md bg-coral-400/15 text-coral-200">
                   <Icon width={22} height={22} />
                 </span>
                 <h3 className="mt-4 text-sm font-bold text-neutral-0">
@@ -231,7 +243,7 @@ export default function AboutPage() {
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-coral-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-coral-700">
               Why Shoppers Choose Us
             </p>
             <h2 className="mt-1 text-xl font-bold text-neutral-800 sm:text-2xl">
@@ -248,7 +260,7 @@ export default function AboutPage() {
                   key={reason.label}
                   className="flex items-center gap-4 py-4"
                 >
-                  <span className="text-sm font-bold text-coral-600">
+                  <span className="text-sm font-bold text-coral-700">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="text-sm font-semibold text-neutral-800">
@@ -271,7 +283,13 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <ProductPromoBanner />
+      <PromoBanner
+        image="/products/image4.webp"
+        title="Ready to start shopping?"
+        description="Browse gadgets, fashion, accessories and sports gear — with Cash on Delivery on every order."
+        ctaLabel="Shop all products"
+        ctaHref="/products"
+      />
     </>
   );
 }

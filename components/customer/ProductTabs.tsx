@@ -1,142 +1,127 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import type { Product } from "@/lib/types";
-import { StarIcon } from "@/components/ui/icons";
+import { StarRating } from "@/components/ui/StarRating";
 
-const PLACEHOLDER_REVIEWS = [
-  {
-    name: "Rafiul Islam",
-    role: "Verified buyer, Dhaka",
-    rating: 5,
-    text: "Ordered this and it arrived the next day. Packaging was solid and the price was better than what I found elsewhere.",
-  },
-  {
-    name: "Nusrat Jahan",
-    role: "Verified buyer, Chattogram",
-    rating: 5,
-    text: "Exactly as described, delivery was on time. Cash on delivery made it easy to trust the first order.",
-  },
-  {
-    name: "Tanvir Ahmed",
-    role: "Verified buyer, Sylhet",
-    rating: 4,
-    text: "Good quality for the price. Would buy again from UNA Mart.",
-  },
-];
+type Tab = "description" | "details" | "reviews";
 
-type Tab = "description" | "specifications" | "reviews";
-
-export function ProductTabs({ product }: { product: Product }) {
+// Accessible tabs (WAI-ARIA pattern: roving tabindex, arrow keys).
+// Reviews show only the real aggregate rating from the product data —
+// individual review text appears once the Review API (SYSTEM_DESIGN.md)
+// exists. Never hard-code sample reviews here.
+export function ProductTabs({
+  product,
+  details,
+}: {
+  product: Product;
+  /** Label/value rows built server-side (category, SKU, delivery, …). */
+  details: [string, string][];
+}) {
   const [tab, setTab] = useState<Tab>("description");
+  const baseId = useId();
+  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({
+    description: null,
+    details: null,
+    reviews: null,
+  });
 
-  const specs: [string, string][] = [
-    ["Status", product.status === "active" ? "Active" : "Out of stock"],
-    ["Stock quantity", `${product.stockQty} units`],
-    ["Free delivery", product.freeDelivery ? "Yes" : "No"],
-    [
-      "Added",
-      new Date(product.createdAt).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-    ],
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "description", label: "Description" },
+    { id: "details", label: "Details" },
+    {
+      id: "reviews",
+      label: product.reviewCount ? `Ratings (${product.reviewCount})` : "Ratings",
+    },
   ];
 
+  function onKeyDown(e: KeyboardEvent) {
+    const index = tabs.findIndex((t) => t.id === tab);
+    const delta = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!delta) return;
+    e.preventDefault();
+    const next = tabs[(index + delta + tabs.length) % tabs.length].id;
+    setTab(next);
+    tabRefs.current[next]?.focus();
+  }
+
   return (
-    <div className="mt-14">
-      <div className="flex gap-1 border-b border-neutral-200">
-        <TabButton active={tab === "description"} onClick={() => setTab("description")}>
-          Description
-        </TabButton>
-        <TabButton
-          active={tab === "specifications"}
-          onClick={() => setTab("specifications")}
-        >
-          Specifications
-        </TabButton>
-        <TabButton active={tab === "reviews"} onClick={() => setTab("reviews")}>
-          Reviews {product.reviewCount ? `(${product.reviewCount})` : ""}
-        </TabButton>
+    <div>
+      <div
+        role="tablist"
+        aria-label="Product information"
+        onKeyDown={onKeyDown}
+        className="scrollbar-none flex gap-1 overflow-x-auto border-b border-neutral-200"
+      >
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            ref={(el) => {
+              tabRefs.current[t.id] = el;
+            }}
+            type="button"
+            role="tab"
+            id={`${baseId}-${t.id}-tab`}
+            aria-controls={`${baseId}-${t.id}-panel`}
+            aria-selected={tab === t.id}
+            tabIndex={tab === t.id ? 0 : -1}
+            onClick={() => setTab(t.id)}
+            className={`-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+              tab === t.id
+                ? "border-coral-400 text-navy-800"
+                : "border-transparent text-neutral-600 hover:text-neutral-800"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="py-6">
+      <div
+        role="tabpanel"
+        id={`${baseId}-${tab}-panel`}
+        aria-labelledby={`${baseId}-${tab}-tab`}
+        tabIndex={0}
+        className="py-6 outline-none"
+      >
         {tab === "description" && (
-          <p className="max-w-3xl text-sm leading-relaxed text-neutral-600">
+          <p className="max-w-3xl text-[15px] leading-relaxed text-neutral-700">
             {product.description}
           </p>
         )}
 
-        {tab === "specifications" && (
-          <dl className="max-w-xl divide-y divide-neutral-200">
-            {specs.map(([label, value]) => (
-              <div
-                key={label}
-                className="flex items-center justify-between py-2.5 text-sm"
-              >
-                <dt className="text-neutral-500">{label}</dt>
+        {tab === "details" && (
+          <dl className="max-w-xl divide-y divide-neutral-200 rounded-md border border-neutral-200">
+            {details.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-[140px_1fr] gap-4 px-4 py-3 text-sm">
+                <dt className="text-neutral-600">{label}</dt>
                 <dd className="font-medium text-neutral-800">{value}</dd>
               </div>
             ))}
           </dl>
         )}
 
-        {tab === "reviews" && (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {PLACEHOLDER_REVIEWS.map((review) => (
-              <div
-                key={review.name}
-                className="rounded-lg border border-neutral-200 bg-neutral-0 p-5"
-              >
-                <div className="flex gap-0.5 text-warning">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <StarIcon
-                      key={i}
-                      width={14}
-                      height={14}
-                      filled={i < review.rating}
-                    />
-                  ))}
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-                  &ldquo;{review.text}&rdquo;
+        {tab === "reviews" &&
+          (product.rating !== undefined && product.reviewCount ? (
+            <div className="flex max-w-xl items-center gap-5 rounded-md border border-neutral-200 p-5">
+              <p className="text-4xl font-bold tracking-tight text-navy-800">
+                {product.rating.toFixed(1)}
+                <span className="text-base font-medium text-neutral-500">/5</span>
+              </p>
+              <div>
+                <StarRating rating={product.rating} size={18} />
+                <p className="mt-1 text-sm text-neutral-600">
+                  Based on {product.reviewCount.toLocaleString("en-US")} ratings from
+                  UNA Mart customers.
                 </p>
-                <div className="mt-4">
-                  <p className="text-sm font-semibold text-neutral-800">
-                    {review.name}
-                  </p>
-                  <p className="text-xs text-neutral-500">{review.role}</p>
-                </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-600">
+              This product hasn&apos;t been rated yet.
+            </p>
+          ))}
       </div>
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-        active
-          ? "border-coral-600 text-navy-800"
-          : "border-transparent text-neutral-500 hover:text-neutral-800"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

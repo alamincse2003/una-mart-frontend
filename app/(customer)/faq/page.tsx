@@ -1,21 +1,45 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { PageBanner } from "@/components/customer/PageBanner";
 import { FaqAccordion } from "@/components/customer/FaqAccordion";
+import { FAQS } from "@/lib/faqs";
+import { JsonLd } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description:
+    "Answers to common questions about delivery, payment, returns and orders at UNA Mart.",
+  alternates: { canonical: "/faq" },
+};
 
 export default function FaqPage() {
   return (
     <>
-      <PageBanner title="FAQ" />
-      <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <h2 className="text-xl font-bold text-neutral-800">
-          Frequently Asked Questions
-        </h2>
-        <p className="mt-2 text-sm text-neutral-500">
-          Can&apos;t find what you&apos;re looking for? Reach out on our
-          Contact Us page.
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: FAQS.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        }}
+      />
+      <PageBanner
+        title="Frequently asked questions"
+        breadcrumbs={[{ label: "FAQ" }]}
+        description="Quick answers about delivery, payments, returns and orders."
+      />
+      <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+        <FaqAccordion faqs={FAQS} />
+        <p className="mt-8 text-center text-sm text-neutral-600">
+          Still need help?{" "}
+          <Link href="/contact" className="font-semibold text-navy-600 underline">
+            Contact our team
+          </Link>
+          .
         </p>
-        <div className="mt-6">
-          <FaqAccordion />
-        </div>
       </section>
     </>
   );
