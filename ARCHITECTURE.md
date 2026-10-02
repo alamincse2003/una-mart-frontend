@@ -11,18 +11,40 @@ WHAT it is (pages, data, API).
 | Styling | Tailwind CSS | Fast, consistent with existing design tokens |
 | Animation | GSAP | Marketing sections only — see CLAUDE.md rules |
 | Backend | Node.js + NestJS, TypeScript | Structured (modules/controllers/services), same language as frontend |
-| Database | PostgreSQL | Relational data (sellers→products→orders) fits marketplace shape |
-| Cache/session | Redis | Cart and session data without hitting Postgres every request |
-| Images | Cloudinary | CDN-served, no local disk storage to scale |
-| Payments | bKash, Nagad | Bangladesh market — card-only would miss most customers |
-| Hosting | Vercel (frontend), Railway/Render (backend + Postgres + Redis) | Low ops overhead for a two-person team |
+| ORM / migrations | Prisma | Most common with NestJS, best docs and migrations, atomic stock updates |
+| Database | PostgreSQL (managed: Railway or Neon) | Relational data (sellers→products→orders) fits marketplace shape |
+| Cache/session | **None at launch** — Postgres holds carts and sessions | See decision D2; add Redis only on a measured need |
+| Search | Postgres full-text + `pg_trgm` | Typo-tolerant, free, enough for thousands of products |
+| Images | Cloudinary (signed uploads from admin) | CDN-served, automatic resizing/WebP |
+| Payments | Cash on Delivery + one aggregator (e.g. SSLCommerz) at launch; direct bKash/Nagad later | See decision D5 |
+| Delivery | One courier API (Steadfast or Pathao) behind an interface | See decision D6 |
+| SMS | Local SMS gateway (OTP + order notifications) | Phone-first auth, Bangladesh market |
+| Monitoring | Sentry (web + api) | Errors surface before customers report them |
+| Hosting | Vercel (frontend), Railway/Render (API + Postgres) | Low ops overhead for a two-person team |
+
+## Decisions
+
+Short records of choices that are expensive to reverse. To change one,
+add a new entry that supersedes it — don't silently edit.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| D1 | **Prisma** for ORM and migrations | Best NestJS docs, safe migrations, type-safe queries; conditional `updateMany` handles the stock race | Hot paths need raw SQL (use `$queryRaw` there, keep Prisma) |
+| D2 | **No Redis at launch** | Postgres easily handles carts, sessions and rate-limit counters at our scale; one less service to run and pay for | p95 API latency or DB load shows a measured need |
+| D3 | **Phone + OTP auth**, optional password later; admins need OTP + password | How Bangladeshi shoppers expect to log in; verifies phones, which cuts fake COD orders | — |
+| D4 | **Server-side sessions** in Postgres via an httpOnly, `Secure`, `SameSite=Lax` cookie; API on `api.unamartbd.com` | Instantly revocable, no token juggling in JS; the shared parent domain keeps cookies first-party between Vercel and Railway | A native mobile app (add token auth alongside) |
+| D5 | **COD + one payment aggregator** first; direct bKash/Nagad later | One integration covers bKash, Nagad and cards with faster approval; the `PaymentProvider` interface makes switching a new adapter, not a rewrite | Online volume makes direct-API fees worth it — **DECIDE** after fee quotes |
+| D6 | **One courier** at launch behind a `CourierProvider` interface | Steadfast and Pathao both offer APIs and COD settlement; one is enough to launch | Coverage or rates require a second — **DECIDE** courier after rate quotes |
+| D7 | **Money as integer poisha**, UUID ids, UTC timestamps, E.164 phones | Avoids float rounding, guessable ids, timezone and phone-format bugs | — |
+| D8 | **OpenAPI** generated from NestJS → typed client generated for the web app | Frontend and backend types can't drift; replaces hand-written `lib/types.ts` | — |
+| D9 | **Monorepo** (`apps/web`, `apps/api`) with pnpm workspaces, no Turborepo yet | One PR can change API and UI together | CI builds get slow |
 
 ## Repo layout
 
 **Current state (Phase 1, frontend-only): flat single Next.js app**, not yet
 the monorepo below — there is no `apps/web/` split while the NestJS backend
-doesn't exist. The move to the full monorepo happens when the `api` app is
-started (Phase 2), not before.
+doesn't exist. The move to the monorepo happens when the `api` app is
+started (now, still Phase 1 — the backend is not a Phase 2 feature).
 
 ```
 una-mart-frontend/                (this repo, root of the Next.js app)
@@ -67,24 +89,43 @@ una-mart-frontend/                (this repo, root of the Next.js app)
                                     + component classes in @layer components
 ```
 
-### Target state (once Phase 2's NestJS backend starts)
+### Target state (once the NestJS backend starts)
 
 ```
 una-mart/
 ├── apps/
 │   ├── web/                      this app, moved here as-is
 │   └── api/                      NestJS backend
+│       ├── prisma/               schema.prisma, migrations/, seed.ts
 │       └── src/
-│           ├── products/
-│           ├── categories/
-│           ├── orders/
-│           ├── auth/
-│           └── admin/
+│           ├── auth/             OTP, sessions, role guards
+│           ├── users/            profile, addresses
+│           ├── catalog/          products, variants, images, categories, search
+│           ├── inventory/        stock ledger (StockMovement), the only writer of stock
+│           ├── cart/
+│           ├── orders/           checkout, lifecycle transition(), status events
+│           ├── payments/         PaymentProvider interface + adapters (cod, sslcommerz, bkash…)
+│           ├── shipping/         CourierProvider interface + adapters, delivery zones
+│           ├── returns/          return requests, refunds
+│           ├── reviews/
+│           ├── notifications/    SMS (email later)
+│           ├── admin/            admin-only controllers, audit log
+│           ├── jobs/             payment expiry, reconciliation, cart cleanup
+│           └── common/           money, phone, errors, pagination, config
 │
 └── packages/
-    └── shared-types/              types shared between web and api once
-                                   both exist, to avoid drift
+    └── api-client/                generated from the API's OpenAPI spec (D8)
 ```
+
+### Module boundaries that matter
+
+- **Only `inventory/` changes stock**, and only `orders/` changes order
+  status (through `transition()`). Everything else calls those services,
+  so the overselling and lifecycle rules each live in one place.
+- **Providers are adapters:** `payments/` and `shipping/` depend on an
+  interface (`createPayment`, `verify`, `refund` / `book`, `track`,
+  `cancel`). Adding bKash-direct or a second courier is a new adapter plus
+  config, with no change to order logic.
 
 ### Why route groups matter now
 
@@ -99,22 +140,26 @@ All frontend data fetching goes through one file. In Phase 1 it points at
 URL changes — components never call `fetch` directly, so they never need
 to change.
 
-## Data flow (Phase 1 → Phase 2)
+## Data flow (fake API → real API)
 
 ```
-Phase 1:  Component → api-client.ts → /app/api/* (fake data, in-memory or JSON)
-Phase 2:  Component → api-client.ts → NestJS API → PostgreSQL
+Now:    Component → api-client.ts → /app/api/* (fake data, in-memory)
+Next:   Component → generated client → NestJS API → PostgreSQL
 ```
 
-The contract (request/response shape) is fixed by `SYSTEM_DESIGN.md` from
-day one, so this swap changes zero component code.
+Client components change only through `api-client.ts`. Server components
+(homepage, category and product pages) switch from importing
+`lib/fake-data.ts` to a server-side API fetch, one call site each. The v2
+contract changes listed in `SYSTEM_DESIGN.md` (poisha, pagination,
+variants) are one-time frontend updates.
 
 ## Environment / config
 
 - `.env.local` (web): `NEXT_PUBLIC_API_URL` — points at `/api` in Phase 1,
   at the NestJS URL once it exists.
-- `.env` (api, once built): `DATABASE_URL`, `REDIS_URL`, `BKASH_*`,
-  `NAGAD_*`, `CLOUDINARY_*`.
+- `.env` (api, once built): `DATABASE_URL`, `SESSION_SECRET`,
+  `PAYMENT_*` (aggregator keys), `COURIER_*`, `SMS_*`, `CLOUDINARY_*`,
+  `SENTRY_DSN`, `WEB_ORIGIN` (for CORS).
 - Never commit `.env` files. `.env.example` documents required keys.
 
 ## Conventions
@@ -129,8 +174,24 @@ day one, so this swap changes zero component code.
 - Auth checks belong in NestJS guards (backend), never trust a frontend
   route guard alone once the real backend exists.
 
-## Deployment (later, not needed for fake-data phase)
+## Deployment
 
-- `web` → Vercel, auto-deploy from `main`.
-- `api` → Railway/Render, auto-deploy from `main`, separate from web.
-- PostgreSQL + Redis → managed instances on the same host as `api`.
+- `web` → Vercel, auto-deploy from `main`; preview deploys per PR.
+- `api` → Railway/Render, auto-deploy from `main`; `prisma migrate deploy`
+  runs before the new version starts.
+- PostgreSQL → managed, **daily backups on, and one tested restore before
+  launch**.
+- Two environments: `staging` (provider sandboxes, test SMS) and
+  `production`. Provider keys are never shared between them.
+
+## Security and operations baseline (before launch)
+
+- Rate limits on OTP request/verify, login, `POST /orders` and guest order
+  lookup (counters in Postgres, D2).
+- Webhooks verify the provider signature or call back to the provider;
+  never trust the payload alone.
+- CORS allows only `WEB_ORIGIN`; cookies are `Secure` and `HttpOnly`.
+- Every request body is validated with DTOs (`class-validator`).
+- Sentry on web and API, structured JSON logs with a request id, and an
+  uptime check on `/health`.
+- Admin writes create `AuditLog` rows.

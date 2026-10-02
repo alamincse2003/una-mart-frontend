@@ -27,10 +27,12 @@ If a task seems to call for one of these, ask first rather than adding it.
 - Frontend: Next.js (App Router) + Tailwind CSS + GSAP for animation
 - Backend: Node.js + NestJS
 - Database: PostgreSQL
-- Cache/session: Redis
+- Cache/session: Postgres at launch; Redis only on a measured need (ARCHITECTURE.md D2)
+- ORM: Prisma
 - Images: Cloudinary
-- Payments (Bangladesh): bKash, Nagad — build the payment layer so a new
-  provider can be added without touching order logic
+- Payments (Bangladesh): Cash on Delivery + one aggregator at launch,
+  direct bKash/Nagad later (ARCHITECTURE.md D5) — build the payment layer
+  so a new provider can be added without touching order logic
 - Hosting: Vercel (frontend), Railway or Render (backend + DB)
 
 ## Frontend-first workflow
