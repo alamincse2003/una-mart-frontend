@@ -47,13 +47,13 @@ export function Hero({ categories }: { categories: Category[] }) {
 
   return (
     <section className="bg-linear-to-b from-navy-50 to-neutral-50">
-      <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-5 sm:px-6 sm:py-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:py-12">
-        <div className="order-2 lg:order-1">
+      <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-5 sm:px-6 sm:py-8 md:grid-cols-[1.1fr_1fr] md:gap-8 lg:gap-12 lg:py-12">
+        <div className="order-2 md:order-1">
           <p className="inline-flex items-center gap-2 rounded-pill bg-neutral-0 px-3 py-1 text-xs font-semibold text-navy-800 shadow-sm ring-1 ring-navy-100">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-coral-400" />
             Gadgets · Fashion · Accessories · Sports
           </p>
-          <h1 className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-navy-800 sm:text-4xl lg:text-5xl xl:text-[3.5rem]">
+          <h1 className="mt-4 text-3xl font-extrabold leading-[1.1] tracking-tight text-navy-800 md:text-4xl lg:text-5xl xl:text-[3.5rem]">
             Everything you need,{" "}
             <span className="block text-coral-700">in one place.</span>
           </h1>
@@ -100,7 +100,7 @@ export function Hero({ categories }: { categories: Category[] }) {
           </nav>
         </div>
 
-        <div className="order-1 mx-auto w-full max-w-md sm:max-w-lg lg:order-2 lg:max-w-none">
+        <div className="order-1 mx-auto w-full max-w-md sm:max-w-lg md:order-2 md:max-w-none">
           <CampaignCarousel slides={SLIDES} />
         </div>
       </div>

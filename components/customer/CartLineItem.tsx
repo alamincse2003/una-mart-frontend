@@ -37,7 +37,7 @@ export function CartLineItem({
           alt=""
           fill
           sizes="96px"
-          className="object-contain p-2"
+          className="object-contain p-2 mix-blend-multiply"
         />
       </Link>
 

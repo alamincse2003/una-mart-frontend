@@ -54,7 +54,7 @@ export function ProductCard({
             fill
             priority={priority}
             sizes="(min-width: 1280px) 290px, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className={`object-contain p-3 transition-transform duration-300 group-hover:scale-[1.04] sm:p-4 ${
+            className={`object-contain p-3 mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.04] sm:p-4 ${
               outOfStock ? "opacity-50 grayscale" : ""
             }`}
           />

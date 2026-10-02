@@ -82,7 +82,7 @@ export function Footer({ categories }: { categories: Category[] }) {
           <TrustStrip tone="dark" />
         </div>
 
-        <div className="grid gap-10 py-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 py-10 sm:grid-cols-2 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <Link
               href="/"

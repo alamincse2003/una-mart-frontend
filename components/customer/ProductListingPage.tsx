@@ -199,6 +199,7 @@ export function ProductListingPage({
         )}
 
         <div className="mt-5">
+          <h2 className="sr-only">Products</h2>
           {filtered.length > 0 ? (
             <ProductGrid products={filtered} priorityCount={4} />
           ) : (

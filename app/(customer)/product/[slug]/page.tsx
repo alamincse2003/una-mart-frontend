@@ -98,7 +98,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
         />
       </div>
 
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-6 sm:px-6 lg:grid-cols-2 lg:gap-12 [&>*]:min-w-0">
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-6 sm:px-6 md:grid-cols-2 md:gap-8 lg:gap-12 [&>*]:min-w-0">
         <ProductGallery images={product.images} name={product.name} />
 
         <div className="flex flex-col">

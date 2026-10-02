@@ -1,12 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronRight } from "lucide-react";
 import type { Category } from "@/lib/types";
-import { prefersReducedMotion } from "@/lib/motion";
 
 /** Slim product summary for the menu — computed server-side in the layout. */
 export interface MenuProduct {
@@ -35,22 +33,9 @@ export function MegaMenu({
   menuProducts: Record<string, MenuProduct[]>;
   onNavigate: () => void;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
   const [hoveredSubcategoryId, setHoveredSubcategoryId] = useState<
     string | null
   >(null);
-
-  useLayoutEffect(() => {
-    if (prefersReducedMotion()) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        panelRef.current,
-        { autoAlpha: 0, y: -6 },
-        { autoAlpha: 1, y: 0, duration: 0.2, ease: "power2.out" }
-      );
-    });
-    return () => ctx.revert();
-  }, []);
 
   const subcategories = subcategoriesByParent.get(activeCategory.id) ?? [];
   const activeSubcategory =
@@ -77,8 +62,7 @@ export function MegaMenu({
 
   return (
     <div
-      ref={panelRef}
-      className="absolute inset-x-0 top-full hidden border-t border-neutral-200 bg-neutral-0 shadow-lg lg:block"
+      className="animate-menu-in absolute inset-x-0 top-full hidden border-t border-neutral-200 bg-neutral-0 shadow-lg lg:block"
     >
       <div className="mx-auto grid max-w-7xl grid-cols-[220px_1fr_260px] gap-8 px-4 py-6 sm:px-6">
         <ul className="flex flex-col gap-1 border-r border-neutral-200 pr-4">

@@ -28,6 +28,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           alt={images.length > 1 ? `${name} — image ${active + 1} of ${images.length}` : name}
           fill
           priority
+          fetchPriority="high"
           sizes="(min-width: 1024px) 600px, 100vw"
           style={zoom ? { transformOrigin: `${zoom.x}% ${zoom.y}%` } : undefined}
           className={`object-contain p-6 transition-transform duration-200 sm:p-10 ${

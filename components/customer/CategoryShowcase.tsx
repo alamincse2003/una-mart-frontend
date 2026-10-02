@@ -35,7 +35,7 @@ export function CategoryShowcase({
       />
 
       <Reveal className="mt-6">
-        <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           {topLevel.map((category) => (
             <li key={category.id} data-reveal>
               <Link
@@ -48,7 +48,7 @@ export function CategoryShowcase({
                     alt=""
                     fill
                     sizes="(min-width: 1024px) 290px, 50vw"
-                    className="object-contain p-5 transition-transform duration-500 group-hover:scale-105 sm:p-8"
+                    className="object-contain p-5 mix-blend-multiply transition-transform duration-500 group-hover:scale-105 sm:p-8"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2 p-3 sm:p-4">

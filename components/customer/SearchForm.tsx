@@ -52,7 +52,7 @@ function SearchFormView({
         enterKeyHint="search"
         autoComplete="off"
         aria-label="Search products"
-        placeholder="Search products, brands and categories"
+        placeholder="Search products"
         className="h-10 w-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-neutral-500 focus-visible:outline-none sm:text-sm [&::-webkit-search-cancel-button]:hidden"
       />
       <button

@@ -134,6 +134,7 @@ export function CampaignCarousel({ slides }: { slides: CampaignSlide[] }) {
                   alt={slide.alt}
                   fill
                   priority={i === 0}
+                fetchPriority={i === 0 ? "high" : "auto"}
                   sizes="(min-width: 1024px) 560px, 100vw"
                   draggable={false}
                   className="select-none object-contain"

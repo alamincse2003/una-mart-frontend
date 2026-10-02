@@ -32,7 +32,7 @@ export function AddToCartButton({
       size="sm"
       onClick={handleClick}
       disabled={disabled || status === "adding"}
-      aria-label={disabled ? `${productName} is out of stock` : `Add ${productName} to cart`}
+      aria-label={disabled ? `Out of stock: ${productName}` : `Add to cart: ${productName}`}
       className="w-full"
     >
       {status === "added" ? (

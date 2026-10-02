@@ -49,7 +49,7 @@
   --color-neutral-200: #dde3e8; /* borders, dividers */
   --color-neutral-300: #c3ccd4; /* disabled borders, placeholder rules */
   --color-neutral-400: #93a0ab; /* 2.67:1 — decorative only, NOT text */
-  --color-neutral-500: #6b7883; /* 4.53:1 on white (AA) — muted text floor */
+  --color-neutral-500: #5f6b76; /* 5.4:1 on white, 5.1:1 on neutral-50 page bg (AA) — muted text floor */
   --color-neutral-600: #4c5760; /* 7.40:1 on white (AAA) — secondary body text */
   --color-neutral-700: #333b42; /* 11.38:1 (AAA) */
   --color-neutral-800: #1f252a; /* 15.48:1 (AAA) — body text */
@@ -133,10 +133,14 @@ button:not(:disabled) {
 
 /* One focus ring for every interactive element. navy-400 is 5.50:1 on
    white, so it clears WCAG's 3:1 non-text contrast rule; mouse users never
-   see it thanks to :focus-visible. */
-:focus-visible {
-  outline: 3px solid var(--color-navy-400);
-  outline-offset: 2px;
+   see it thanks to :focus-visible. Lives in @layer base so components that
+   draw their own focus style (text fields, the search pill) can override it
+   with a plain utility — an unlayered rule would always win. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--color-navy-400);
+    outline-offset: 2px;
+  }
 }
 
 /* Hidden horizontal scrollbars for swipeable rails (carousels). */
@@ -308,6 +312,22 @@ button:not(:disabled) {
 }
 .animate-bump {
   animation: bump 350ms ease-out;
+}
+
+/* Mega-menu entrance — plain CSS so the animation library isn't needed on
+   every page just for a 200ms fade. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-menu-in {
+  animation: menu-in 200ms ease-out both;
 }
 
 /* Respect the OS-level "reduce motion" setting everywhere, including the
