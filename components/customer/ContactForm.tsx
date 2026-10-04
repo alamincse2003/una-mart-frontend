@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Mail } from "lucide-react";
+import { Mail, Package, Phone, User } from "lucide-react";
 import { SUPPORT_EMAIL } from "@/lib/site";
 import { Button } from "@/components/ui/Button";
 import { TextAreaField, TextField } from "@/components/ui/Field";
@@ -35,13 +35,23 @@ export function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <TextField label="Full name" required autoComplete="name" value={form.name} onChange={set("name")} />
+        <TextField
+          label="Full name"
+          required
+          autoComplete="name"
+          placeholder="Your name"
+          leading={<User width={17} height={17} />}
+          value={form.name}
+          onChange={set("name")}
+        />
         <TextField
           label="Mobile number"
           type="tel"
           inputMode="tel"
           required
           autoComplete="tel"
+          placeholder="01XXXXXXXXX"
+          leading={<Phone width={17} height={17} />}
           value={form.phone}
           onChange={set("phone")}
         />
@@ -49,6 +59,7 @@ export function ContactForm() {
       <TextField
         label="Order number (optional)"
         placeholder="e.g. UM-10231"
+        leading={<Package width={17} height={17} />}
         value={form.orderId}
         onChange={set("orderId")}
       />

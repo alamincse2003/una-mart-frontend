@@ -3,7 +3,20 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle2, Lock, ShoppingBag } from "lucide-react";
+import {
+  Banknote,
+  Building2,
+  CheckCircle2,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  ShoppingBag,
+  Smartphone,
+  User,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
@@ -25,10 +38,10 @@ import { OrderSummary } from "./OrderSummary";
 // Same rule as the server (app/api/orders/route.ts).
 const BD_PHONE = /^(?:\+?88)?01[3-9]\d{8}$/;
 
-const PAYMENT_OPTIONS: { id: PaymentMethod; hint: string }[] = [
-  { id: "cod", hint: "Pay in cash when your order arrives" },
-  { id: "bkash", hint: "Pay from your bKash account" },
-  { id: "nagad", hint: "Pay from your Nagad account" },
+const PAYMENT_OPTIONS: { id: PaymentMethod; hint: string; icon: LucideIcon }[] = [
+  { id: "cod", hint: "Pay in cash when your order arrives", icon: Banknote },
+  { id: "bkash", hint: "Pay from your bKash account", icon: Smartphone },
+  { id: "nagad", hint: "Pay from your Nagad account", icon: Wallet },
 ];
 
 interface FormState {
@@ -171,6 +184,8 @@ export function CheckoutView() {
                 name="customerName"
                 required
                 autoComplete="name"
+                placeholder="e.g. Rahim Uddin"
+                leading={<User width={17} height={17} />}
                 value={form.customerName}
                 onChange={update("customerName")}
                 error={errors.customerName}
@@ -183,6 +198,7 @@ export function CheckoutView() {
                 required
                 autoComplete="tel"
                 placeholder="01XXXXXXXXX"
+                leading={<Phone width={17} height={17} />}
                 value={form.phone}
                 onChange={update("phone")}
                 error={errors.phone}
@@ -194,6 +210,8 @@ export function CheckoutView() {
                 name="email"
                 type="email"
                 autoComplete="email"
+                placeholder="you@example.com"
+                leading={<Mail width={17} height={17} />}
                 value={form.email}
                 onChange={update("email")}
                 error={errors.email}
@@ -229,6 +247,7 @@ export function CheckoutView() {
                 required
                 autoComplete="street-address"
                 placeholder="House, road, area"
+                leading={<MapPin width={17} height={17} />}
                 value={form.address}
                 onChange={update("address")}
                 error={errors.address}
@@ -239,6 +258,7 @@ export function CheckoutView() {
                 required
                 autoComplete="address-level2"
                 placeholder={zone === "inside_dhaka" ? "Dhaka" : "e.g. Chattogram"}
+                leading={<Building2 width={17} height={17} />}
                 value={form.city}
                 onChange={update("city")}
                 error={errors.city}
@@ -267,6 +287,7 @@ export function CheckoutView() {
                     onChange={() => setPaymentMethod(option.id)}
                     title={PAYMENT_METHOD_LABELS[option.id]}
                     hint={option.hint}
+                    icon={option.icon}
                   />
                 ))}
               </div>
@@ -340,11 +361,11 @@ function CheckoutStep({
   children: ReactNode;
 }) {
   return (
-    <Card className="p-5 sm:p-6">
-      <h2 className="flex items-center gap-3 text-lg font-bold text-neutral-800">
+    <Card className="p-5 sm:p-7">
+      <h2 className="flex items-center gap-3 border-b border-neutral-100 pb-4 text-lg font-bold text-neutral-800">
         <span
           aria-hidden
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-navy-800 text-xs font-bold text-neutral-0"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-800 text-sm font-bold text-neutral-0 ring-4 ring-navy-50"
         >
           {number}
         </span>
@@ -362,6 +383,7 @@ function ChoiceCard({
   title,
   hint,
   meta,
+  icon: Icon,
 }: {
   name: string;
   checked: boolean;
@@ -369,10 +391,11 @@ function ChoiceCard({
   title: string;
   hint?: string;
   meta?: string;
+  icon?: LucideIcon;
 }) {
   return (
     <label
-      className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-md border-2 px-4 py-3 transition-colors has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-navy-400 ${
+      className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border-2 px-4 py-3 transition-colors has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-navy-400 ${
         checked ? "border-navy-800 bg-navy-50" : "border-neutral-200 hover:border-neutral-400"
       }`}
     >
@@ -383,6 +406,16 @@ function ChoiceCard({
         onChange={onChange}
         className="h-4.5 w-4.5 shrink-0 accent-navy-800 focus-visible:outline-none"
       />
+      {Icon && (
+        <span
+          aria-hidden
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+            checked ? "bg-navy-800 text-neutral-0" : "bg-neutral-100 text-neutral-600"
+          }`}
+        >
+          <Icon width={18} height={18} />
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-neutral-800">{title}</span>
         {hint && <span className="block text-xs text-neutral-600">{hint}</span>}

@@ -7,6 +7,7 @@ import { getDiscountPercent, isOutOfStock } from "@/lib/product";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SortSelect } from "@/components/ui/SortSelect";
 import { formatPrice } from "@/lib/format";
 import { EMPTY_FILTERS, ProductFilters, type FilterState } from "./ProductFilters";
 import { ProductGrid } from "./ProductGrid";
@@ -153,21 +154,15 @@ export function ProductListingPage({
               <SlidersHorizontal aria-hidden width={15} height={15} />
               Filters{chips.length > 0 && ` (${chips.length})`}
             </Button>
-            <label className="flex items-center gap-2 text-sm text-neutral-600">
+            <div className="flex items-center gap-2 text-sm text-neutral-600">
               <span className="hidden sm:inline">Sort by</span>
-              <span className="sr-only sm:hidden">Sort by</span>
-              <select
+              <SortSelect
+                label="Sort by"
                 value={sort}
-                onChange={(e) => setSort(e.target.value as SortOption)}
-                className="input-base min-h-9 w-auto cursor-pointer rounded-pill py-1.5 pl-3.5 pr-8 text-sm font-semibold text-neutral-800"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={SORT_OPTIONS}
+                onChange={setSort}
+              />
+            </div>
           </div>
         </div>
 

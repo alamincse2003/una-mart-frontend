@@ -55,11 +55,14 @@ export function TextField({
   error,
   className,
   trailing,
+  leading,
   ...inputProps
 }: FieldShellProps &
   InputHTMLAttributes<HTMLInputElement> & {
     /** Control rendered inside the input's right edge (e.g. show-password). */
     trailing?: ReactNode;
+    /** Decorative icon rendered inside the input's left edge. */
+    leading?: ReactNode;
   }) {
   const generatedId = useId();
   const id = inputProps.id ?? generatedId;
@@ -73,12 +76,20 @@ export function TextField({
       className={className}
     >
       <div className="relative">
+        {leading && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-neutral-400"
+          >
+            {leading}
+          </span>
+        )}
         <input
           {...inputProps}
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={error || hint ? `${id}-msg` : undefined}
-          className={`input-base ${trailing ? "pr-12" : ""}`}
+          className={`input-base ${leading ? "pl-10" : ""} ${trailing ? "pr-12" : ""}`}
         />
         {trailing && <div className="absolute inset-y-0 right-0 flex items-center">{trailing}</div>}
       </div>

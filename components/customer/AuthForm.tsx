@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Info } from "lucide-react";
+import { AtSign, Eye, EyeOff, Info, Lock, User } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 
@@ -67,7 +67,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {isRegister && (
-        <TextField label="Full name" name="name" required autoComplete="name" />
+        <TextField
+          label="Full name"
+          name="name"
+          required
+          autoComplete="name"
+          placeholder="e.g. Rahim Uddin"
+          leading={<User width={17} height={17} />}
+        />
       )}
 
       <TextField
@@ -76,20 +83,24 @@ export function AuthForm({ mode }: { mode: Mode }) {
         required
         autoComplete="username"
         inputMode="email"
+        placeholder="01XXXXXXXXX or you@email.com"
+        leading={<AtSign width={17} height={17} />}
       />
 
       <TextField
-          label="Password"
-          name="password"
-          type={showPassword ? "text" : "password"}
-          required
-          minLength={8}
-          autoComplete={isRegister ? "new-password" : "current-password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          hint={isRegister ? "At least 8 characters." : undefined}
-          trailing={passwordToggle}
-        />
+        label="Password"
+        name="password"
+        type={showPassword ? "text" : "password"}
+        required
+        minLength={8}
+        autoComplete={isRegister ? "new-password" : "current-password"}
+        placeholder={isRegister ? "Create a password" : "Your password"}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        hint={isRegister ? "At least 8 characters." : undefined}
+        leading={<Lock width={17} height={17} />}
+        trailing={passwordToggle}
+      />
 
       {isRegister ? (
         <TextField
@@ -99,6 +110,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
           required
           minLength={8}
           autoComplete="new-password"
+          placeholder="Repeat your password"
+          leading={<Lock width={17} height={17} />}
           value={confirm}
           onChange={(e) => {
             setConfirm(e.target.value);
@@ -117,16 +130,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <Button type="submit" variant="primary" size="lg" className="mt-1 w-full">
         {isRegister ? "Create account" : "Log in"}
       </Button>
-
-      <p className="text-center text-sm text-neutral-600">
-        {isRegister ? "Already have an account? " : "New to UNA Mart? "}
-        <Link
-          href={isRegister ? "/login" : "/register"}
-          className="font-semibold text-navy-600 hover:underline"
-        >
-          {isRegister ? "Log in" : "Create an account"}
-        </Link>
-      </p>
     </form>
   );
 }
