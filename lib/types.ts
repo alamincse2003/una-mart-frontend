@@ -107,6 +107,37 @@ export interface OrderItem {
   sellerId?: string | null; // P2, for splitting orders across sellers
 }
 
+// Admin views (GET /admin/orders). SYSTEM_DESIGN's OrderStatusEvent —
+// every status change is recorded with who made it.
+export interface OrderStatusEvent {
+  from: OrderStatus | null;
+  to: OrderStatus;
+  actor: "customer" | "admin" | "system";
+  note?: string;
+  at: string;
+}
+
+export interface AdminOrder extends Order {
+  customerName: string;
+  phone: string;
+  email?: string;
+  address: string;
+  city: string;
+  deliveryZone: CreateOrderRequest["deliveryZone"];
+  customerNote?: string;
+  deliveryFee: number;
+  items: OrderItem[];
+  history: OrderStatusEvent[];
+}
+
+export interface AdminStats {
+  ordersToday: number;
+  pendingConfirmation: number;
+  revenueToday: number;
+  lowStockCount: number;
+  statusCounts: Record<OrderStatus, number>;
+}
+
 export interface Review {
   id: string;
   productId: string;

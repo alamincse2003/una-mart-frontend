@@ -2,8 +2,10 @@ import {
   useId,
   type InputHTMLAttributes,
   type ReactNode,
+  type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
+import { ChevronDown } from "lucide-react";
 
 // Labelled form control with hint + error text wired up via
 // aria-describedby / aria-invalid, so screen readers announce them.
@@ -122,6 +124,46 @@ export function TextAreaField({
         aria-describedby={error || hint ? `${id}-msg` : undefined}
         className="input-base resize-y"
       />
+    </FieldShell>
+  );
+}
+
+export function SelectField({
+  label,
+  hint,
+  error,
+  className,
+  children,
+  ...selectProps
+}: FieldShellProps & SelectHTMLAttributes<HTMLSelectElement>) {
+  const generatedId = useId();
+  const id = selectProps.id ?? generatedId;
+  return (
+    <FieldShell
+      id={id}
+      label={label}
+      hint={hint}
+      error={error}
+      required={selectProps.required}
+      className={className}
+    >
+      <div className="relative">
+        <select
+          {...selectProps}
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error || hint ? `${id}-msg` : undefined}
+          className="input-base cursor-pointer appearance-none pr-10"
+        >
+          {children}
+        </select>
+        <ChevronDown
+          aria-hidden
+          width={16}
+          height={16}
+          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500"
+        />
+      </div>
     </FieldShell>
   );
 }

@@ -58,7 +58,9 @@ una-mart-frontend/                (this repo, root of the Next.js app)
 │   │   ├── about/, contact/, faq/, *-policy/, terms/
 │   │   ├── not-found.tsx, error.tsx, [...missing]/ (branded 404)
 │   │   └── account/               not built yet (needs auth backend)
-│   ├── (admin)/                   route group — admin panel, not built yet
+│   ├── (admin)/admin/             overview, orders, products, categories (fake
+│   │                              /api/admin/*; 404 in prod unless ADMIN_PREVIEW=1,
+│   │                              see proxy.ts — no real auth until NestJS guards)
 │   ├── sitemap.ts, robots.ts
 │   └── api/                       fake data lives here in Phase 1
 │       ├── products/route.ts      ?category= (incl. subcategories) &search= &ids=

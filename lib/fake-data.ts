@@ -448,3 +448,120 @@ export function getCategoryPath(categoryId: string): Category[] {
   }
   return path;
 }
+
+// ---------------------------------------------------------------------------
+// Admin writes (POST/PATCH /admin/products, /admin/categories). In-memory:
+// changes last until the dev server restarts. The NestJS catalog module
+// replaces these — same shapes, plus AuditLog rows for every write.
+// ---------------------------------------------------------------------------
+
+export class CatalogError extends Error {}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function uniqueSlug(text: string, taken: (slug: string) => boolean): string {
+  const base = slugify(text) || "item";
+  let slug = base;
+  for (let n = 2; taken(slug); n++) slug = `${base}-${n}`;
+  return slug;
+}
+
+export interface ProductInput {
+  name: string;
+  description: string;
+  categoryId: string;
+  price: number;
+  originalPrice?: number | null;
+  stockQty: number;
+  status: Product["status"];
+  badge?: Product["badge"];
+  freeDelivery?: boolean;
+  images: string[];
+}
+
+function assertCategory(categoryId: string) {
+  if (!categories.some((c) => c.id === categoryId)) {
+    throw new CatalogError("That category doesn't exist.");
+  }
+}
+
+export function createProduct(input: ProductInput): Product {
+  assertCategory(input.categoryId);
+  const { originalPrice, ...rest } = input;
+  const product: Product = {
+    ...rest,
+    ...(originalPrice ? { originalPrice } : {}),
+    id: `prod-${Date.now().toString(36)}`,
+    slug: uniqueSlug(input.name, (s) => products.some((p) => p.slug === s)),
+    createdAt: new Date().toISOString(),
+  };
+  products.push(product);
+  return product;
+}
+
+export function updateProduct(id: string, patch: Partial<ProductInput>): Product {
+  const product = products.find((p) => p.id === id);
+  if (!product) throw new CatalogError("Product not found.");
+  if (patch.categoryId) assertCategory(patch.categoryId);
+
+  const { originalPrice, ...rest } = patch;
+  Object.assign(product, rest);
+  if (originalPrice !== undefined) {
+    if (originalPrice) product.originalPrice = originalPrice;
+    else delete product.originalPrice;
+  }
+  return product;
+}
+
+/** Stock movement from orders (negative = sold, positive = restocked). */
+export function adjustStock(productId: string, delta: number) {
+  const product = products.find((p) => p.id === productId);
+  if (product) product.stockQty = Math.max(0, product.stockQty + delta);
+}
+
+export function createCategory(input: { name: string; parentId?: string | null }): Category {
+  if (input.parentId) assertCategory(input.parentId);
+  const category: Category = {
+    id: `cat-${Date.now().toString(36)}`,
+    name: input.name.trim(),
+    slug: uniqueSlug(input.name, (s) => categories.some((c) => c.slug === s)),
+    parentId: input.parentId ?? null,
+  };
+  categories.push(category);
+  return category;
+}
+
+export function updateCategory(
+  id: string,
+  patch: { name?: string; parentId?: string | null }
+): Category {
+  const category = categories.find((c) => c.id === id);
+  if (!category) throw new CatalogError("Category not found.");
+  if (patch.parentId !== undefined && patch.parentId !== null) {
+    assertCategory(patch.parentId);
+    if (getDescendantCategoryIds(id).has(patch.parentId)) {
+      throw new CatalogError("A category can't be moved inside itself.");
+    }
+  }
+  if (patch.name !== undefined) category.name = patch.name.trim();
+  if (patch.parentId !== undefined) category.parentId = patch.parentId;
+  return category;
+}
+
+export function deleteCategory(id: string) {
+  const index = categories.findIndex((c) => c.id === id);
+  if (index === -1) throw new CatalogError("Category not found.");
+  if (categories.some((c) => c.parentId === id)) {
+    throw new CatalogError("Move or delete its subcategories first.");
+  }
+  if (products.some((p) => p.categoryId === id)) {
+    throw new CatalogError("Move its products to another category first.");
+  }
+  categories.splice(index, 1);
+}
