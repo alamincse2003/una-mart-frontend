@@ -37,9 +37,13 @@ add a new entry that supersedes it — don't silently edit.
 | D6 | **One courier** at launch behind a `CourierProvider` interface | Steadfast and Pathao both offer APIs and COD settlement; one is enough to launch | Coverage or rates require a second — **DECIDE** courier after rate quotes |
 | D7 | **Money as integer poisha**, UUID ids, UTC timestamps, E.164 phones | Avoids float rounding, guessable ids, timezone and phone-format bugs | — |
 | D8 | **OpenAPI** generated from NestJS → typed client generated for the web app | Frontend and backend types can't drift; replaces hand-written `lib/types.ts` | — |
-| D9 | **Monorepo** (`apps/web`, `apps/api`) with pnpm workspaces, no Turborepo yet | One PR can change API and UI together | CI builds get slow |
+| D9 | **Monorepo** (`apps/web`, `apps/api`) with pnpm workspaces, no Turborepo yet — **superseded by D10** | One PR can change API and UI together | CI builds get slow |
+| D10 | **Two repos**: `una-mart-frontend` (Next.js, Vercel) and `una-mart-backend` (NestJS, Railway/Render), npm in both | Founders' call (Oct 2026): keeps the deployed frontend repo and Vercel setup untouched while the API is built | Keeping API types in sync by hand gets painful — then generate the OpenAPI client (D8) into the frontend, or revisit a monorepo |
 
 ## Repo layout
+
+> **D10 applies:** the backend lives in its own repo, `una-mart-backend`
+> (sibling folder). The monorepo layout below is kept for reference only.
 
 **Current state (Phase 1, frontend-only): flat single Next.js app**, not yet
 the monorepo below — there is no `apps/web/` split while the NestJS backend
