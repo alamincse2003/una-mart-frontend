@@ -5,6 +5,19 @@ const priceFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-export function formatPrice(amount: number): string {
-  return `৳${priceFormatter.format(Math.round(amount))}`;
+/** Money in the app is integer poisha (৳1 = 100); this is the only place it becomes taka. */
+export function formatPrice(poisha: number): string {
+  return `৳${priceFormatter.format(Math.round(poisha / 100))}`;
+}
+
+export const toPoisha = (taka: number) => Math.round(taka * 100);
+export const toTaka = (poisha: number) => poisha / 100;
+
+export function formatDate(iso: string, withTime = false): string {
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...(withTime ? { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Dhaka" } : { timeZone: "Asia/Dhaka" }),
+  });
 }

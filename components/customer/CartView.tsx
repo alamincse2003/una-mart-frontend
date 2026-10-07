@@ -11,8 +11,9 @@ import { CartLineItem } from "./CartLineItem";
 import { OrderSummary } from "./OrderSummary";
 
 export function CartView() {
-  const { status, lines, itemCount, subtotal, linesLoading, cart } = useCart();
-  const loading = status === "loading" || (cart.items.length > 0 && linesLoading && lines.length === 0);
+  const { status, lines, itemCount, subtotal } = useCart();
+  const loading = status === "loading";
+  const hasIssues = lines.some((line) => line.issue !== null);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -41,7 +42,7 @@ export function CartView() {
           </Card>
           <Card className="h-56 animate-pulse bg-neutral-100" />
         </div>
-      ) : cart.items.length === 0 ? (
+      ) : lines.length === 0 ? (
         <Card className="mt-6">
           <EmptyState
             icon={ShoppingBag}
@@ -61,7 +62,7 @@ export function CartView() {
           <Card className="px-4 sm:px-5">
             <ul className="divide-y divide-neutral-200">
               {lines.map((line) => (
-                <li key={line.item.id} className="py-5">
+                <li key={line.id} className="py-5">
                   <CartLineItem line={line} />
                 </li>
               ))}
@@ -78,6 +79,11 @@ export function CartView() {
                 deliveryFee={null}
               />
             </div>
+            {hasIssues && (
+              <p role="alert" className="mt-4 rounded-md bg-danger-bg px-3 py-2.5 text-sm font-medium text-danger">
+                Some items need attention before you can check out.
+              </p>
+            )}
             <div className="mt-5 grid gap-2">
               <ButtonLink href="/checkout" variant="cta" size="lg">
                 <Lock aria-hidden width={16} height={16} />
@@ -90,7 +96,7 @@ export function CartView() {
             <ul className="mt-5 space-y-2 border-t border-neutral-200 pt-4 text-xs text-neutral-600">
               <li className="flex items-center gap-2">
                 <Banknote aria-hidden width={15} height={15} className="text-navy-600" />
-                Cash on Delivery, bKash and Nagad accepted
+                Cash on Delivery — pay when it arrives
               </li>
               <li className="flex items-center gap-2">
                 <RotateCcw aria-hidden width={15} height={15} className="text-navy-600" />

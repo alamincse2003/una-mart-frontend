@@ -1,19 +1,15 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-// The admin panel has no real auth until the NestJS role guard exists
-// (SYSTEM_DESIGN: "a hidden frontend route is not a protected route"). So in
-// production it doesn't exist at all unless ADMIN_PREVIEW=1 is set; on
-// localhost (`next dev`) it's always available.
-export function proxy(request: NextRequest) {
-  const isProduction = process.env.NODE_ENV === "production";
-  if (isProduction && process.env.ADMIN_PREVIEW !== "1") {
-    return request.nextUrl.pathname.startsWith("/api/")
-      ? NextResponse.json({ message: "Not found" }, { status: 404 })
-      : NextResponse.rewrite(new URL("/not-found-admin", request.url), { status: 404 });
-  }
-  return NextResponse.next();
+// Admin pages are protected by the API (admin role + password/OTP session on
+// every /v1/admin route) and redirect to /admin/login in the browser. This
+// proxy only keeps them out of search engines and caches.
+export function proxy() {
+  const response = NextResponse.next();
+  response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*"],
 };

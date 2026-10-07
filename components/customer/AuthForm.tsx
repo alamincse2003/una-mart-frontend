@@ -1,134 +1,179 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import Link from "next/link";
-import { AtSign, Eye, EyeOff, Info, Lock, User } from "lucide-react";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { KeyRound, Phone, User } from "lucide-react";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/lib/toast-context";
+import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
+import { OtpInput } from "./OtpInput";
 
 type Mode = "login" | "register";
 
-// Auth UI ahead of the backend (POST /auth/login, /auth/register in
-// SYSTEM_DESIGN.md). Validation is real; submission is not wired yet, and
-// the form says so instead of pretending the user is signed in.
-// Wire handleSubmit to apiClient once the NestJS auth module exists.
-export function AuthForm({ mode }: { mode: Mode }) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+const BD_PHONE = /^(?:\+?88)?01[3-9]\d{8}$/;
+const RESEND_SECONDS = 60;
+
+// Phone-first auth (ARCHITECTURE.md D3): no passwords for shoppers. Step 1
+// sends a 6-digit code by SMS, step 2 verifies it and starts a session; the
+// account is created on first login. "Create account" also saves the name.
+export function AuthForm({ mode, next }: { mode: Mode; next: string }) {
+  const router = useRouter();
+  const toast = useToast();
+  const { verifyOtp, updateMe } = useAuth();
   const isRegister = mode === "register";
 
-  function handleSubmit(e: FormEvent) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [devCode, setDevCode] = useState<string | undefined>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resendAt, setResendAt] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (step !== "code") return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [step]);
+
+  const cleanPhone = phone.replace(/[\s-]/g, "");
+
+  async function sendCode() {
+    const sent = await apiClient.requestOtp(cleanPhone, "login");
+    setDevCode(sent.devCode);
+    setResendAt(Date.now() + RESEND_SECONDS * 1000);
+    setNow(Date.now());
+    setStep("code");
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (isRegister && password !== confirm) {
-      setConfirmError("Passwords don't match.");
-      return;
+    setError(null);
+    if (step === "phone") {
+      if (isRegister && name.trim().length < 2) return setError("Please enter your full name.");
+      if (!BD_PHONE.test(cleanPhone)) return setError("Enter an 11-digit mobile number, e.g. 01712345678.");
+    } else if (!/^\d{6}$/.test(code)) {
+      return setError("Enter the 6-digit code from the SMS.");
     }
-    setSubmitted(true);
+
+    setBusy(true);
+    try {
+      if (step === "phone") {
+        await sendCode();
+      } else {
+        const me = await verifyOtp(cleanPhone, code);
+        if (isRegister && name.trim() && me.name !== name.trim()) await updateMe({ name: name.trim() });
+        toast(isRegister ? "Welcome to UNA Mart!" : "You're logged in");
+        router.push(next);
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+      if (err instanceof ApiError && err.code === "OTP_LOCKED") setCode("");
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center py-6 text-center" role="status">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-info-bg text-info">
-          <Info aria-hidden width={22} height={22} />
-        </span>
-        <h2 className="mt-4 text-lg font-bold text-neutral-800">Accounts are coming soon</h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600">
-          You don&apos;t need an account to order — check out as a guest and
-          track your order with your order number and mobile number.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <ButtonLink href="/products" variant="cta">
-            Continue shopping
-          </ButtonLink>
-          <ButtonLink href="/track-order" variant="secondary">
-            Track an order
-          </ButtonLink>
-        </div>
-      </div>
-    );
+  async function resend() {
+    setError(null);
+    setBusy(true);
+    try {
+      await sendCode();
+      setCode("");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "We couldn't send the code. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
-  const passwordToggle = (
-    <button
-      type="button"
-      onClick={() => setShowPassword((s) => !s)}
-      aria-label={showPassword ? "Hide password" : "Show password"}
-      aria-pressed={showPassword}
-      className="flex h-11 w-11 items-center justify-center text-neutral-500 hover:text-neutral-800"
-    >
-      {showPassword ? <EyeOff aria-hidden width={18} height={18} /> : <Eye aria-hidden width={18} height={18} />}
-    </button>
-  );
+  const resendIn = Math.max(0, Math.ceil((resendAt - now) / 1000));
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {isRegister && (
-        <TextField
-          label="Full name"
-          name="name"
-          required
-          autoComplete="name"
-          placeholder="e.g. Rahim Uddin"
-          leading={<User width={17} height={17} />}
-        />
-      )}
-
-      <TextField
-        label="Mobile number or email"
-        name="username"
-        required
-        autoComplete="username"
-        inputMode="email"
-        placeholder="01XXXXXXXXX or you@email.com"
-        leading={<AtSign width={17} height={17} />}
-      />
-
-      <TextField
-        label="Password"
-        name="password"
-        type={showPassword ? "text" : "password"}
-        required
-        minLength={8}
-        autoComplete={isRegister ? "new-password" : "current-password"}
-        placeholder={isRegister ? "Create a password" : "Your password"}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        hint={isRegister ? "At least 8 characters." : undefined}
-        leading={<Lock width={17} height={17} />}
-        trailing={passwordToggle}
-      />
-
-      {isRegister ? (
-        <TextField
-          label="Confirm password"
-          name="confirm-password"
-          type={showPassword ? "text" : "password"}
-          required
-          minLength={8}
-          autoComplete="new-password"
-          placeholder="Repeat your password"
-          leading={<Lock width={17} height={17} />}
-          value={confirm}
-          onChange={(e) => {
-            setConfirm(e.target.value);
-            setConfirmError(null);
-          }}
-          error={confirmError}
-        />
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      {step === "phone" ? (
+        <>
+          {isRegister && (
+            <TextField
+              label="Full name"
+              name="name"
+              required
+              autoComplete="name"
+              placeholder="e.g. Rahim Uddin"
+              leading={<User width={17} height={17} />}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          )}
+          <TextField
+            label="Mobile number"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            required
+            autoComplete="tel"
+            placeholder="01XXXXXXXXX"
+            leading={<Phone width={17} height={17} />}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            hint="We'll send a 6-digit code by SMS."
+          />
+        </>
       ) : (
-        <div className="-mt-1 flex justify-end">
-          <Link href="/contact" className="text-sm font-semibold text-navy-600 hover:underline">
-            Forgot password?
-          </Link>
+        <div>
+          <p className="text-sm text-neutral-700">
+            Enter the code we sent to <span className="font-semibold text-neutral-800">{cleanPhone}</span>.{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setStep("phone");
+                setCode("");
+                setError(null);
+              }}
+              className="font-semibold text-navy-600 hover:underline"
+            >
+              Change number
+            </button>
+          </p>
+          <div className="mt-3">
+            <OtpInput value={code} onChange={setCode} label="6-digit code" autoFocus />
+          </div>
+          {devCode && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-neutral-600">
+              <KeyRound aria-hidden width={13} height={13} />
+              Dev mode code: <span className="font-mono font-semibold">{devCode}</span>
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={resend}
+            disabled={resendIn > 0 || busy}
+            className="mt-2 text-sm font-semibold text-navy-600 underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-neutral-500 disabled:no-underline"
+          >
+            {resendIn > 0 ? `Resend code in ${resendIn}s` : "Resend code"}
+          </button>
         </div>
       )}
 
-      <Button type="submit" variant="primary" size="lg" className="mt-1 w-full">
-        {isRegister ? "Create account" : "Log in"}
+      {error && (
+        <p role="alert" className="rounded-md bg-danger-bg px-3 py-2.5 text-sm font-medium text-danger">
+          {error}
+        </p>
+      )}
+
+      <Button type="submit" variant="primary" size="lg" disabled={busy} className="mt-1 w-full">
+        {busy
+          ? "Please wait…"
+          : step === "phone"
+            ? "Send code"
+            : isRegister
+              ? "Verify & create account"
+              : "Verify & log in"}
       </Button>
     </form>
   );

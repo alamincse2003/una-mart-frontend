@@ -11,8 +11,7 @@ import { CartLineItem } from "./CartLineItem";
 // Mini cart: opens after a successful add-to-cart so shoppers get instant
 // confirmation and a one-tap path to checkout without leaving the page.
 export function CartDrawer() {
-  const { drawerOpen, setDrawerOpen, lines, itemCount, subtotal, linesLoading } =
-    useCart();
+  const { drawerOpen, setDrawerOpen, lines, itemCount, subtotal } = useCart();
   const close = () => setDrawerOpen(false);
 
   return (
@@ -59,21 +58,10 @@ export function CartDrawer() {
       ) : (
         <ul className="flex flex-col divide-y divide-neutral-200 px-5">
           {lines.map((line) => (
-            <li key={line.item.id} className="py-4">
+            <li key={line.id} className="py-4">
               <CartLineItem line={line} compact onNavigate={close} />
             </li>
           ))}
-          {linesLoading && (
-            <li className="py-4">
-              <div className="flex gap-3">
-                <div className="h-18 w-18 animate-pulse rounded-md bg-neutral-100" />
-                <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 w-3/4 animate-pulse rounded bg-neutral-100" />
-                  <div className="h-3 w-1/3 animate-pulse rounded bg-neutral-100" />
-                </div>
-              </div>
-            </li>
-          )}
         </ul>
       )}
     </Drawer>

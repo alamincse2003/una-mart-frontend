@@ -1,110 +1,58 @@
-// Single place all frontend data fetching goes through. In Phase 1 it
-// points at /app/api/* (fake). When the NestJS backend is ready, only
-// NEXT_PUBLIC_API_URL changes — components never call fetch directly.
+// Storefront calls made from the browser (cart, checkout, orders, login).
+// Cookies (una_cart, una_session) travel with every request; see lib/http.ts.
+import { toProduct, type ApiProductListItem } from "./adapters";
+import { productQueryString } from "./catalog";
+import { request } from "./http";
 import type {
   Cart,
-  Category,
   CreateOrderRequest,
-  CreateOrderResponse,
+  CustomerOrder,
+  DeliveryZone,
+  Me,
+  OrderSummary,
+  OtpSent,
+  Page,
   Product,
 } from "./types";
 
-const API_PATH = process.env.NEXT_PUBLIC_API_URL ?? "/api";
-
-// Relative URLs only work in the browser. Server components (e.g. the
-// homepage) need an absolute URL, so resolve one when running server-side.
-function resolveBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    return API_PATH;
-  }
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
-    "http://localhost:3000";
-  return `${origin}${API_PATH}`;
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number
-  ) {
-    super(message);
-  }
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${resolveBaseUrl()}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    // Surface the server's own message (e.g. "Only 3 in stock") so the UI
-    // can show it instead of a generic failure.
-    const body = (await res.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new ApiError(
-      body?.message ?? `Request to ${path} failed`,
-      res.status
-    );
-  }
-
-  return res.json() as Promise<T>;
-}
+export { ApiError } from "./http";
 
 export const apiClient = {
-  getProducts(params?: { category?: string; search?: string; ids?: string[] }) {
-    const query = new URLSearchParams();
-    if (params?.category) query.set("category", params.category);
-    if (params?.search) query.set("search", params.search);
-    if (params?.ids) query.set("ids", params.ids.join(","));
-    const qs = query.toString();
-    return request<Product[]>(`/products${qs ? `?${qs}` : ""}`);
+  async getProductsByIds(ids: string[]): Promise<Product[]> {
+    if (ids.length === 0) return [];
+    const page = await request<Page<ApiProductListItem>>(`/products${productQueryString({ ids, pageSize: 100 })}`);
+    return page.items.map(toProduct);
   },
 
-  getProduct(slug: string) {
-    return request<Product>(`/products/${slug}`);
-  },
+  getDeliveryZones: () => request<DeliveryZone[]>("/delivery-zones"),
 
-  getCategories() {
-    return request<Category[]>("/categories");
-  },
+  // ---- cart ----
+  getCart: () => request<Cart>("/cart"),
+  addCartItem: (variantId: string, quantity: number) =>
+    request<Cart>("/cart/items", { method: "POST", body: { variantId, quantity } }),
+  updateCartItem: (itemId: string, quantity: number) =>
+    request<Cart>(`/cart/items/${itemId}`, { method: "PATCH", body: { quantity } }),
+  removeCartItem: (itemId: string) => request<Cart>(`/cart/items/${itemId}`, { method: "DELETE" }),
 
-  getCart() {
-    return request<Cart>("/cart");
-  },
+  // ---- orders ----
+  createOrder: (input: CreateOrderRequest) => request<CustomerOrder>("/orders", { method: "POST", body: input }),
+  /** Owner when logged in; guests pass the phone used at checkout. */
+  getOrder: (orderNumber: string, phone?: string) =>
+    request<CustomerOrder>(
+      `/orders/${encodeURIComponent(orderNumber)}${phone ? `?phone=${encodeURIComponent(phone)}` : ""}`
+    ),
+  cancelOrder: (orderNumber: string, phone?: string) =>
+    request<CustomerOrder>(
+      `/orders/${encodeURIComponent(orderNumber)}/cancel${phone ? `?phone=${encodeURIComponent(phone)}` : ""}`,
+      { method: "POST" }
+    ),
+  myOrders: (page = 1) => request<Page<OrderSummary>>(`/orders?page=${page}&pageSize=10`),
 
-  addCartItem(productId: string, quantity: number) {
-    return request<Cart>("/cart/items", {
-      method: "POST",
-      body: JSON.stringify({ productId, quantity }),
-    });
-  },
-
-  updateCartItem(itemId: string, quantity: number) {
-    return request<Cart>(`/cart/items/${itemId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ quantity }),
-    });
-  },
-
-  removeCartItem(itemId: string) {
-    return request<Cart>(`/cart/items/${itemId}`, { method: "DELETE" });
-  },
-
-  /** Guest order lookup — phone must match the one used at checkout. */
-  getOrder(orderId: string, phone: string) {
-    const qs = new URLSearchParams({ phone }).toString();
-    return request<CreateOrderResponse>(`/orders/${encodeURIComponent(orderId)}?${qs}`);
-  },
-
-  createOrder(input: CreateOrderRequest) {
-    return request<CreateOrderResponse>("/orders", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
-  },
+  // ---- auth ----
+  requestOtp: (phone: string, purpose: "login" | "checkout") =>
+    request<OtpSent>("/auth/otp/request", { method: "POST", body: { phone, purpose } }),
+  verifyOtp: (phone: string, code: string) => request<Me>("/auth/otp/verify", { method: "POST", body: { phone, code } }),
+  me: () => request<Me>("/auth/me"),
+  updateMe: (patch: { name?: string; email?: string }) => request<Me>("/auth/me", { method: "PATCH", body: patch }),
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
 };

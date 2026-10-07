@@ -2,25 +2,11 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { toTaka } from "@/lib/format";
+import type { FilterState } from "@/lib/listing";
 import type { Category } from "@/lib/types";
 
-export interface FilterState {
-  categoryIds: string[];
-  inStockOnly: boolean;
-  onSaleOnly: boolean;
-  minPrice: number | null;
-  maxPrice: number | null;
-  minRating: number | null;
-}
-
-export const EMPTY_FILTERS: FilterState = {
-  categoryIds: [],
-  inStockOnly: false,
-  onSaleOnly: false,
-  minPrice: null,
-  maxPrice: null,
-  minRating: null,
-};
+export { EMPTY_FILTERS, type FilterState } from "@/lib/listing";
 
 const RATING_OPTIONS = [4, 3];
 
@@ -37,18 +23,17 @@ export function ProductFilters({
 }: {
   /** Categories offered as filters (top-level on /products, children on a category page). */
   categoryOptions: Category[];
+  /** Poisha. */
   priceBounds: { min: number; max: number };
   filters: FilterState;
   onChange: (filters: FilterState) => void;
 }) {
-  function toggleCategory(id: string) {
-    const next = filters.categoryIds.includes(id)
-      ? filters.categoryIds.filter((c) => c !== id)
-      : [...filters.categoryIds, id];
-    onChange({ ...filters, categoryIds: next });
+  function toggleCategory(slug: string) {
+    const next = filters.categorySlugs.includes(slug)
+      ? filters.categorySlugs.filter((c) => c !== slug)
+      : [...filters.categorySlugs, slug];
+    onChange({ ...filters, categorySlugs: next });
   }
-
-  const parsePrice = (value: string) => (value === "" ? null : Math.max(0, Number(value)));
 
   return (
     <div className="flex flex-col divide-y divide-neutral-200">
@@ -58,8 +43,8 @@ export function ProductFilters({
             <label key={category.id} className={optionRowClass}>
               <input
                 type="checkbox"
-                checked={filters.categoryIds.includes(category.id)}
-                onChange={() => toggleCategory(category.id)}
+                checked={filters.categorySlugs.includes(category.slug)}
+                onChange={() => toggleCategory(category.slug)}
                 className={checkboxClass}
               />
               {category.name}
@@ -90,35 +75,14 @@ export function ProductFilters({
       </FilterSection>
 
       <FilterSection title="Price (৳)">
-        <div className="flex items-center gap-2 pt-1">
-          <label className="flex-1">
-            <span className="sr-only">Minimum price</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              placeholder={`Min ${priceBounds.min}`}
-              value={filters.minPrice ?? ""}
-              onChange={(e) => onChange({ ...filters, minPrice: parsePrice(e.target.value) })}
-              className="input-base min-h-10 px-3 py-2"
-            />
-          </label>
-          <span aria-hidden className="text-sm text-neutral-500">
-            –
-          </span>
-          <label className="flex-1">
-            <span className="sr-only">Maximum price</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              placeholder={`Max ${priceBounds.max}`}
-              value={filters.maxPrice ?? ""}
-              onChange={(e) => onChange({ ...filters, maxPrice: parsePrice(e.target.value) })}
-              className="input-base min-h-10 px-3 py-2"
-            />
-          </label>
-        </div>
+        {/* Keyed on the applied values so a cleared filter resets the inputs. */}
+        <PriceRange
+          key={`${filters.minPrice}-${filters.maxPrice}`}
+          bounds={{ min: Math.floor(toTaka(priceBounds.min)), max: Math.ceil(toTaka(priceBounds.max)) }}
+          min={filters.minPrice}
+          max={filters.maxPrice}
+          onApply={(minPrice, maxPrice) => onChange({ ...filters, minPrice, maxPrice })}
+        />
       </FilterSection>
 
       <FilterSection title="Customer rating">
@@ -135,6 +99,71 @@ export function ProductFilters({
           </label>
         ))}
       </FilterSection>
+    </div>
+  );
+}
+
+/** Applies on blur / Enter, not per keystroke (each change reloads results). */
+function PriceRange({
+  bounds,
+  min,
+  max,
+  onApply,
+}: {
+  bounds: { min: number; max: number };
+  min: number | null;
+  max: number | null;
+  onApply: (min: number | null, max: number | null) => void;
+}) {
+  const [draftMin, setDraftMin] = useState(min === null ? "" : String(min));
+  const [draftMax, setDraftMax] = useState(max === null ? "" : String(max));
+  const parse = (value: string) => (value.trim() === "" ? null : Math.max(0, Math.floor(Number(value)) || 0));
+
+  const apply = () => {
+    const nextMin = parse(draftMin);
+    const nextMax = parse(draftMax);
+    if (nextMin !== min || nextMax !== max) onApply(nextMin, nextMax);
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      apply();
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      <label className="flex-1">
+        <span className="sr-only">Minimum price</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          placeholder={`Min ${bounds.min}`}
+          value={draftMin}
+          onChange={(e) => setDraftMin(e.target.value)}
+          onBlur={apply}
+          onKeyDown={onKeyDown}
+          className="input-base min-h-10 px-3 py-2"
+        />
+      </label>
+      <span aria-hidden className="text-sm text-neutral-500">
+        –
+      </span>
+      <label className="flex-1">
+        <span className="sr-only">Maximum price</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          placeholder={`Max ${bounds.max}`}
+          value={draftMax}
+          onChange={(e) => setDraftMax(e.target.value)}
+          onBlur={apply}
+          onKeyDown={onKeyDown}
+          className="input-base min-h-10 px-3 py-2"
+        />
+      </label>
     </div>
   );
 }

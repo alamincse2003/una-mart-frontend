@@ -57,21 +57,15 @@ una-mart-frontend/                (this repo, root of the Next.js app)
 │   │   ├── page.tsx               homepage
 │   │   ├── products/, category/[slug]/, search/
 │   │   ├── product/[slug]/
-│   │   ├── cart/, checkout/       checkout → POST /api/orders
-│   │   ├── wishlist/, track-order/, login/, register/
+│   │   ├── cart/, checkout/       checkout → POST /v1/orders (OTP step on 428)
+│   │   ├── wishlist/, track-order/, login/, register/ (phone OTP)
+│   │   ├── account/               profile + my orders + logout
 │   │   ├── about/, contact/, faq/, *-policy/, terms/
-│   │   ├── not-found.tsx, error.tsx, [...missing]/ (branded 404)
-│   │   └── account/               not built yet (needs auth backend)
-│   ├── (admin)/admin/             overview, orders, products, categories (fake
-│   │                              /api/admin/*; 404 in prod unless ADMIN_PREVIEW=1,
-│   │                              see proxy.ts — no real auth until NestJS guards)
-│   ├── sitemap.ts, robots.ts
-│   └── api/                       fake data lives here in Phase 1
-│       ├── products/route.ts      ?category= (incl. subcategories) &search= &ids=
-│       ├── products/[slug]/route.ts
-│       ├── categories/route.ts
-│       ├── cart/route.ts, cart/items/route.ts, cart/items/[id]/route.ts
-│       └── orders/route.ts (POST), orders/[id]/route.ts (GET, phone-verified)
+│   │   └── not-found.tsx, error.tsx, [...missing]/ (branded 404)
+│   ├── (admin)/admin/             login (password + OTP), overview, orders,
+│   │                              products, categories, settings — all data from
+│   │                              /v1/admin/*; the API enforces admin access
+│   └── sitemap.ts, robots.ts
 ├── components/
 │   ├── ui/                        design-system primitives: Button/ButtonLink,
 │   │                              Field, Drawer, Price, SectionHeader,
@@ -79,18 +73,22 @@ una-mart-frontend/                (this repo, root of the Next.js app)
 │   └── customer/                  storefront components (ProductCard is the
 │                                  single product card used everywhere)
 ├── lib/
-│   ├── api-client.ts               single place all client fetch calls go through
-│   ├── types.ts                    shared types matching SYSTEM_DESIGN.md
-│   ├── cart-context.tsx            real cart state + mini-cart drawer state
+│   ├── http.ts                     the one fetch wrapper (API base URL, cookies, ApiError)
+│   ├── catalog.ts                  server-side catalog reads (ISR, 60 s)
+│   ├── api-client.ts               storefront calls from the browser (cart, orders, auth)
+│   ├── admin-api-client.ts         admin calls (/v1/admin/*), admin types
+│   ├── adapters.ts                 API payloads → UI Product / Category
+│   ├── listing.ts                  listing filters ⇄ URL params ⇄ API query
+│   ├── types.ts                    shared types (money in poisha)
+│   ├── auth-context.tsx            current user (GET /auth/me), OTP login, logout
+│   ├── cart-context.tsx            server cart (guest cookie or user) + drawer state
 │   ├── wishlist-context.tsx        guest wishlist (localStorage; no API yet)
 │   ├── toast-context.tsx           accessible toast feedback
 │   ├── pricing.ts                  subtotal / savings / delivery-fee rules
 │   ├── product.ts, format.ts       discount + stock rules, ৳ price formatting
 │   ├── site.ts                     contact details, payment labels, site URL
 │   ├── seo.tsx                     JSON-LD helpers (Product, Breadcrumb)
-│   ├── motion.ts                   prefers-reduced-motion check for GSAP
-│   ├── fake-data.ts, fake-cart-store.ts, fake-order-store.ts   Phase 1 in-memory data
-│   └── session.ts                  cookie-based session id for the fake cart
+│   └── motion.ts                   prefers-reduced-motion check for GSAP
 └── app/globals.css                 navy/coral design tokens (Tailwind v4 @theme)
                                     + component classes in @layer components
 ```
@@ -139,33 +137,37 @@ una-mart/
 `(seller)` is empty in Phase 1. Adding seller routes later means adding a
 folder, not restructuring what already exists.
 
-### Why `api-client.ts` matters
+### Why one fetch layer matters
 
-All frontend data fetching goes through one file. In Phase 1 it points at
-`/api/*` (fake). When the NestJS backend is ready, only this file's base
-URL changes — components never call `fetch` directly, so they never need
-to change.
+Components never call `fetch` directly. Everything goes through
+`lib/http.ts` (via `catalog.ts`, `api-client.ts`, `admin-api-client.ts`),
+and API payloads are mapped to UI shapes in `adapters.ts`, so an API change
+touches one file, not every component.
 
-## Data flow (fake API → real API)
+## Data flow (since Oct 2026: real API, fake data removed)
 
 ```
-Now:    Component → api-client.ts → /app/api/* (fake data, in-memory)
-Next:   Component → generated client → NestJS API → PostgreSQL
+Server components → lib/catalog.ts ─┐   (ISR 60 s, API_URL)
+Client components → api-client.ts ──┼→ NestJS /v1 → PostgreSQL
+Admin pages → admin-api-client.ts ──┘   (browser → API directly, with cookies)
 ```
 
-Client components change only through `api-client.ts`. Server components
-(homepage, category and product pages) switch from importing
-`lib/fake-data.ts` to a server-side API fetch, one call site each. The v2
-contract changes listed in `SYSTEM_DESIGN.md` (poisha, pagination,
-variants) are one-time frontend updates.
+The browser calls the API directly with `credentials: "include"` (D4), not
+through a Next.js proxy: a proxy would make every shopper share one IP in
+the API's rate limits. Web and API must be same-site (localhost:3000 ↔
+:4000; unamartbd.com ↔ api.unamartbd.com) for the `SameSite=Lax` cookies.
+`npm run build` needs the API running (pages are pre-rendered from it).
+Next step: replace hand-written types with the client generated from
+`/docs-json` (D8).
 
 ## Environment / config
 
-- `.env.local` (web): `NEXT_PUBLIC_API_URL` — points at `/api` in Phase 1,
-  at the NestJS URL once it exists.
-- `.env` (api, once built): `DATABASE_URL`, `SESSION_SECRET`,
-  `PAYMENT_*` (aggregator keys), `COURIER_*`, `SMS_*`, `CLOUDINARY_*`,
-  `SENTRY_DSN`, `WEB_ORIGIN` (for CORS).
+- `.env.local` (web): `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:4000/v1`),
+  optional `API_URL` (private URL for server components),
+  `NEXT_PUBLIC_SITE_URL`.
+- `.env` (api): see `una-mart-backend/.env.example` — `DATABASE_URL`,
+  `WEB_ORIGIN` (CORS), `OTP_SECRET`, `SMS_PROVIDER`, COD limits; later
+  `PAYMENT_*`, `COURIER_*`, `CLOUDINARY_*`, `SENTRY_DSN`.
 - Never commit `.env` files. `.env.example` documents required keys.
 
 ## Conventions

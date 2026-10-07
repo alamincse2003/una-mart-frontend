@@ -30,14 +30,14 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   };
 }
 
-export function productJsonLd(product: Product, category?: Category) {
+export function productJsonLd(product: Product, category?: Pick<Category, "name">) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
-    sku: product.id,
-    image: product.images.map((src) => `${SITE_URL}${src}`),
+    sku: product.variants?.[0]?.sku ?? product.id,
+    image: product.images.map((src) => (src.startsWith("http") ? src : `${SITE_URL}${src}`)),
     category: category?.name,
     brand: { "@type": "Brand", name: SITE_NAME },
     ...(product.rating !== undefined && product.reviewCount
@@ -53,7 +53,7 @@ export function productJsonLd(product: Product, category?: Category) {
       "@type": "Offer",
       url: `${SITE_URL}/product/${product.slug}`,
       priceCurrency: "BDT",
-      price: product.price,
+      price: (product.price / 100).toFixed(2), // poisha → BDT
       availability: isOutOfStock(product)
         ? "https://schema.org/OutOfStock"
         : "https://schema.org/InStock",

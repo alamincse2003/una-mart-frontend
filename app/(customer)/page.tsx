@@ -1,4 +1,4 @@
-import { getCategories, getDescendantCategoryIds, getProducts } from "@/lib/fake-data";
+import { descendantIds, getAllProducts, getCategories, getProducts } from "@/lib/catalog";
 import { getDiscountPercent, isOutOfStock } from "@/lib/product";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { JsonLd } from "@/lib/seo";
@@ -14,13 +14,16 @@ import { PromoBanner } from "@/components/customer/PromoBanner";
 
 const RAIL_SIZE = 8;
 
-export default function HomePage() {
-  const categories = getCategories();
-  const products = getProducts();
+export default async function HomePage() {
+  // The layout already loads the full (small) catalog; React's cache() shares
+  // that request. Ranking is a stand-in for real sales signals.
+  const [categories, products, newest] = await Promise.all([
+    getCategories(),
+    getAllProducts(),
+    getProducts({ sort: "newest", inStock: true, pageSize: RAIL_SIZE }),
+  ]);
   const available = products.filter((p) => !isOutOfStock(p));
 
-  // Ranking here is a stand-in for real signals; when the backend exists,
-  // these become e.g. GET /products?sort=bestselling&limit=8.
   const deals = available
     .filter((p) => getDiscountPercent(p) > 0)
     .sort((a, b) => getDiscountPercent(b) - getDiscountPercent(a))
@@ -28,15 +31,13 @@ export default function HomePage() {
   const bestSellers = [...available]
     .sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
     .slice(0, RAIL_SIZE);
-  const newArrivals = [...available]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, RAIL_SIZE);
+  const newArrivals = newest.items;
 
   const productCounts = Object.fromEntries(
     categories
       .filter((c) => !c.parentId)
       .map((c) => {
-        const ids = getDescendantCategoryIds(c.id);
+        const ids = descendantIds(categories, c.id);
         return [c.id, products.filter((p) => ids.has(p.categoryId)).length];
       })
   );

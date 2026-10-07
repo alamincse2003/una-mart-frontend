@@ -5,8 +5,8 @@ import { AuthForm } from "./AuthForm";
 
 const BENEFITS = [
   { icon: Package, text: "Track every order in one place" },
-  { icon: Zap, text: "Faster checkout with saved addresses" },
-  { icon: Heart, text: "Keep your wishlist on any device" },
+  { icon: Zap, text: "Faster checkout — no extra codes for your own number" },
+  { icon: Heart, text: "Track or cancel orders in one tap" },
 ];
 
 const TABS = [
@@ -14,7 +14,12 @@ const TABS = [
   { mode: "register", href: "/register", label: "Create account" },
 ] as const;
 
-export function AuthPage({ mode }: { mode: "login" | "register" }) {
+/** Only same-site paths ("/checkout"), never "//evil.com" or full URLs. */
+export function safeNext(value: string | string[] | undefined): string {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : "/account";
+}
+
+export function AuthPage({ mode, next = "/account" }: { mode: "login" | "register"; next?: string }) {
   const isRegister = mode === "register";
   return (
     <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
@@ -70,7 +75,7 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
               return (
                 <Link
                   key={tab.mode}
-                  href={tab.href}
+                  href={next === "/account" ? tab.href : `${tab.href}?next=${encodeURIComponent(next)}`}
                   role="tab"
                   aria-selected={active}
                   className={`rounded-pill px-4 py-2 text-center text-sm font-semibold transition-colors ${
@@ -90,12 +95,12 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
           </h1>
           <p className="mt-1.5 text-sm text-neutral-600">
             {isRegister
-              ? "Join in a minute — or skip it entirely and check out as a guest."
-              : "Log in to see your orders and check out faster."}
+              ? "Join in a minute with your mobile number — no password needed."
+              : "We'll text a one-time code to your mobile number."}
           </p>
 
           <div className="mt-6">
-            <AuthForm mode={mode} />
+            <AuthForm mode={mode} next={next} />
           </div>
         </div>
       </div>

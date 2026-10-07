@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   description: "Check the status of your UNA Mart order with your order number and mobile number.",
 };
 
-export default function TrackOrderPage() {
+export default async function TrackOrderPage({ searchParams }: PageProps<"/track-order">) {
+  const { number, phone } = await searchParams;
   return (
     <>
       <PageBanner
@@ -20,7 +21,10 @@ export default function TrackOrderPage() {
       />
       <section className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
         <Card className="p-5 sm:p-7">
-          <TrackOrderForm />
+          <TrackOrderForm
+            initialNumber={typeof number === "string" ? number.slice(0, 30) : ""}
+            initialPhone={typeof phone === "string" ? phone.slice(0, 20) : ""}
+          />
         </Card>
         <p className="mt-6 text-center text-sm text-neutral-600">
           Can&apos;t find your order number? Call{" "}

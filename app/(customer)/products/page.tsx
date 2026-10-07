@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getCategories, getProducts } from "@/lib/fake-data";
+import { getCategories, getPriceBounds, getProducts } from "@/lib/catalog";
+import { listingQuery, parseListing } from "@/lib/listing";
 import { PageBanner } from "@/components/customer/PageBanner";
 import { ProductListingPage } from "@/components/customer/ProductListingPage";
 
@@ -10,9 +11,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/products" },
 };
 
-export default function AllProductsPage() {
-  const products = getProducts();
-  const categories = getCategories();
+export default async function AllProductsPage({ searchParams }: PageProps<"/products">) {
+  const listing = parseListing(await searchParams);
+  const [categories, results, priceBounds] = await Promise.all([
+    getCategories(),
+    getProducts(listingQuery(listing, {})),
+    getPriceBounds({}),
+  ]);
 
   return (
     <>
@@ -22,9 +27,11 @@ export default function AllProductsPage() {
       />
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <ProductListingPage
-          products={products}
-          categories={categories}
+          results={results}
+          filters={listing.filters}
+          sort={listing.sort}
           categoryOptions={categories.filter((c) => !c.parentId)}
+          priceBounds={priceBounds}
         />
       </section>
     </>

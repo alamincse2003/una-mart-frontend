@@ -12,6 +12,7 @@ import {
   Tag,
   User,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import type { Category } from "@/lib/types";
 import { SUPPORT_PHONE, SUPPORT_PHONE_HREF } from "@/lib/site";
 import { Drawer } from "@/components/ui/Drawer";
@@ -32,6 +33,7 @@ export function MobileNav({
   subcategoriesByParent: Map<string, Category[]>;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const linkClass = (href: string) =>
@@ -133,7 +135,9 @@ export function MobileNav({
       <div className="mx-4 border-t border-neutral-200 py-3">
         <ul className="flex flex-col">
           {[
-            { href: "/login", label: "Login / Register", icon: User },
+            user
+              ? { href: "/account", label: "My account", icon: User }
+              : { href: "/login", label: "Login / Register", icon: User },
             { href: "/wishlist", label: "Wishlist", icon: Heart },
             { href: "/track-order", label: "Track Order", icon: Package },
             { href: "/contact", label: "Help & Contact", icon: MessageCircle },

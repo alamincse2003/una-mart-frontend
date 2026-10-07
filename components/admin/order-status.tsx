@@ -1,29 +1,40 @@
 import type { OrderStatus } from "@/lib/types";
 
-// Admin wording for each status — matches the Track Order timeline
-// ("pending" = placed, awaiting the confirmation call; "paid" = confirmed).
+// Admin wording for each status (SYSTEM_DESIGN.md order lifecycle).
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pending confirmation",
-  paid: "Confirmed",
+  awaiting_payment: "Awaiting payment",
+  pending_confirmation: "Pending confirmation",
+  confirmed: "Confirmed",
+  processing: "Packing",
   shipped: "Shipped",
   delivered: "Delivered",
+  delivery_failed: "Delivery failed",
+  returned_to_warehouse: "Returned",
   cancelled: "Cancelled",
 };
 
 /** Button text for moving an order INTO a status. */
 export const TRANSITION_ACTION_LABELS: Record<OrderStatus, string> = {
-  pending: "Reopen",
-  paid: "Confirm order",
+  awaiting_payment: "Await payment",
+  pending_confirmation: "Reopen",
+  confirmed: "Confirm order",
+  processing: "Start packing",
   shipped: "Mark as shipped",
   delivered: "Mark as delivered",
+  delivery_failed: "Delivery failed",
+  returned_to_warehouse: "Received back in warehouse",
   cancelled: "Cancel order",
 };
 
 const TONE: Record<OrderStatus, string> = {
-  pending: "bg-warning-bg text-warning",
-  paid: "bg-info-bg text-info",
+  awaiting_payment: "bg-warning-bg text-warning",
+  pending_confirmation: "bg-warning-bg text-warning",
+  confirmed: "bg-info-bg text-info",
+  processing: "bg-info-bg text-info",
   shipped: "bg-navy-50 text-navy-800",
   delivered: "bg-success-bg text-success",
+  delivery_failed: "bg-danger-bg text-danger",
+  returned_to_warehouse: "bg-neutral-100 text-neutral-700",
   cancelled: "bg-danger-bg text-danger",
 };
 

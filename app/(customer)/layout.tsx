@@ -1,4 +1,4 @@
-import { getCategories, getProducts } from "@/lib/fake-data";
+import { getAllProducts, getCategories } from "@/lib/catalog";
 import { Header } from "@/components/customer/Header";
 import { Footer } from "@/components/customer/Footer";
 import { CartDrawer } from "@/components/customer/CartDrawer";
@@ -6,17 +6,17 @@ import type { MenuProduct } from "@/components/customer/MegaMenu";
 
 const MENU_PRODUCTS_PER_CATEGORY = 5;
 
-export default function CustomerLayout({
+export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const categories = getCategories();
+  const [categories, products] = await Promise.all([getCategories(), getAllProducts()]);
 
   // The mega menu only needs a handful of names per category — send that,
   // not the whole catalog, to the client header on every page.
   const menuProducts: Record<string, MenuProduct[]> = {};
-  for (const product of getProducts()) {
+  for (const product of products) {
     const bucket = (menuProducts[product.categoryId] ??= []);
     if (bucket.length < MENU_PRODUCTS_PER_CATEGORY) {
       bucket.push({

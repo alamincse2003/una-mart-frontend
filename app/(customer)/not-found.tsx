@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { getCategories } from "@/lib/fake-data";
+import { getCategories } from "@/lib/catalog";
 import { ButtonLink } from "@/components/ui/Button";
 import { SearchForm } from "@/components/customer/SearchForm";
 
-export default function NotFound() {
-  const topLevel = getCategories().filter((c) => !c.parentId);
+export default async function NotFound() {
+  const topLevel = (await getCategories().catch(() => [])).filter((c) => !c.parentId);
 
   return (
     <section className="mx-auto flex max-w-xl flex-col items-center px-4 py-16 text-center sm:py-24">

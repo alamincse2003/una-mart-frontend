@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SearchX } from "lucide-react";
-import { getCategories, getProducts } from "@/lib/fake-data";
+import { getCategories, getPriceBounds, getProducts } from "@/lib/catalog";
+import { listingQuery, parseListing } from "@/lib/listing";
 import { PageBanner } from "@/components/customer/PageBanner";
 import { ProductListingPage } from "@/components/customer/ProductListingPage";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -20,11 +21,17 @@ export async function generateMetadata({
 }
 
 export default async function SearchPage({ searchParams }: PageProps<"/search">) {
-  const q = (await searchParams).q;
+  const params = await searchParams;
+  const q = params.q;
   const query = typeof q === "string" ? q.trim().slice(0, 100) : "";
-  const categories = getCategories();
+  const listing = parseListing(params);
+  const categories = await getCategories();
   const topLevel = categories.filter((c) => !c.parentId);
-  const results = query ? getProducts({ search: query }) : [];
+  const [results, priceBounds] = query
+    ? await Promise.all([getProducts(listingQuery(listing, { q: query })), getPriceBounds({ q: query })])
+    : [null, { min: 0, max: 0 }];
+  // Filters can empty a search; only an empty *search* shows the help below.
+  const filteredToZero = !!results && results.total === 0 && Object.keys(params).length > 1;
 
   return (
     <>
@@ -32,18 +39,20 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
         title={query ? `Results for “${query}”` : "Search"}
         breadcrumbs={[{ label: "Search" }]}
         description={
-          query
-            ? `${results.length} ${results.length === 1 ? "product" : "products"} found`
+          results
+            ? `${results.total} ${results.total === 1 ? "product" : "products"} found`
             : "Search by product name, type or category."
         }
       />
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {results.length > 0 ? (
+        {results && (results.total > 0 || filteredToZero) ? (
           <ProductListingPage
-            products={results}
-            categories={categories}
+            results={results}
+            filters={listing.filters}
+            sort={listing.sort}
             categoryOptions={topLevel}
+            priceBounds={priceBounds}
           />
         ) : (
           <EmptyState

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Heart, ShoppingCart, User } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 
@@ -24,17 +25,20 @@ function CountBadge({ count, label }: { count: number; label: string }) {
 export function HeaderActions() {
   const { itemCount } = useCart();
   const { ids, ready } = useWishlist();
+  const { user } = useAuth();
   const iconLink =
     "relative flex h-11 w-11 items-center justify-center rounded-full text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-navy-800";
 
   return (
     <div className="flex shrink-0 items-center">
       <Link
-        href="/login"
+        href={user ? "/account" : "/login"}
         className="flex h-11 items-center gap-1.5 rounded-pill px-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-navy-800 sm:px-3"
       >
         <User aria-hidden width={20} height={20} />
-        <span className="sr-only sm:not-sr-only">Login</span>
+        <span className="sr-only sm:not-sr-only">
+          {user ? (user.name?.split(" ")[0] ?? "Account") : "Login"}
+        </span>
       </Link>
 
       <Link href="/wishlist" className={iconLink}>

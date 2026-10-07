@@ -1,59 +1,24 @@
-// Order pricing rules shared by the cart page, cart drawer and checkout so
-// every screen shows the same numbers. The backend's POST /orders must
-// apply the same rules — the frontend total is a preview, not the source
-// of truth.
-import type { CartItem, Product } from "./types";
+// Order pricing previews shared by the cart page, cart drawer and checkout.
+// The API's POST /orders re-prices everything — these are previews, not the
+// source of truth. Delivery fees come from GET /delivery-zones.
+import type { CartLine, DeliveryZone } from "./types";
 
-export type DeliveryZone = "inside_dhaka" | "outside_dhaka";
-
-export const DELIVERY_ZONES: { id: DeliveryZone; label: string; eta: string }[] =
-  [
-    { id: "inside_dhaka", label: "Inside Dhaka", eta: "1–2 business days" },
-    { id: "outside_dhaka", label: "Outside Dhaka", eta: "3–5 business days" },
-  ];
-
-export const DELIVERY_FEE: Record<DeliveryZone, number> = {
-  inside_dhaka: 0,
-  outside_dhaka: 120,
-};
-
-export interface PricedLine {
-  item: CartItem;
-  product: Product;
-  lineTotal: number;
+/** Lines that can be ordered as they are (no unavailable / stock issue). */
+export function orderableLines(lines: CartLine[]): CartLine[] {
+  return lines.filter((line) => line.issue === null);
 }
 
-/** Joins cart items with their products, skipping any not yet loaded. */
-export function priceCartLines(
-  items: CartItem[],
-  products: Record<string, Product>
-): PricedLine[] {
-  return items.flatMap((item) => {
-    const product = products[item.productId];
-    return product
-      ? [{ item, product, lineTotal: product.price * item.quantity }]
-      : [];
-  });
+/** Savings vs. was-prices — shown so discounts stay visible at checkout. */
+export function getSavings(lines: CartLine[]): number {
+  return orderableLines(lines).reduce(
+    (sum, line) => sum + Math.max(0, (line.compareAtPrice ?? line.unitPrice) - line.unitPrice) * line.quantity,
+    0
+  );
 }
 
-export function getSubtotal(lines: PricedLine[]): number {
-  return lines.reduce((sum, line) => sum + line.lineTotal, 0);
-}
-
-/** Savings vs. original prices — shown so discounts stay visible at checkout. */
-export function getSavings(lines: PricedLine[]): number {
-  return lines.reduce((sum, { product, item }) => {
-    const original = product.originalPrice ?? product.price;
-    return sum + Math.max(0, original - product.price) * item.quantity;
-  }, 0);
-}
-
-/** Delivery is free inside Dhaka, and anywhere when every item ships free. */
-export function getDeliveryFee(
-  zone: DeliveryZone,
-  lines: PricedLine[]
-): number {
-  const allFree =
-    lines.length > 0 && lines.every((line) => line.product.freeDelivery);
-  return allFree ? 0 : DELIVERY_FEE[zone];
+/** Same rule as the API: the zone fee, waived when every item ships free. */
+export function getDeliveryFee(zone: Pick<DeliveryZone, "fee">, lines: CartLine[]): number {
+  const orderable = orderableLines(lines);
+  const allFree = orderable.length > 0 && orderable.every((line) => line.freeDelivery);
+  return allFree ? 0 : zone.fee;
 }

@@ -2,18 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Banknote, RotateCcw, ShieldCheck, Truck } from "lucide-react";
-import {
-  getCategoryPath,
-  getDescendantCategoryIds,
-  getProductBySlug,
-  getProducts,
-} from "@/lib/fake-data";
-import { getDiscountPercent, isLowStock, isOutOfStock } from "@/lib/product";
+import { descendantIds, getAllProducts, getCategories, getProduct } from "@/lib/catalog";
+import { isLowStock, isOutOfStock } from "@/lib/product";
 import { formatPrice } from "@/lib/format";
-import { DELIVERY_FEE } from "@/lib/pricing";
+import { request } from "@/lib/http";
 import { breadcrumbJsonLd, JsonLd, productJsonLd } from "@/lib/seo";
+import type { DeliveryZone } from "@/lib/types";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
-import { Price } from "@/components/ui/Price";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { StarRating } from "@/components/ui/StarRating";
 import { ProductGallery } from "@/components/customer/ProductGallery";
@@ -22,15 +17,14 @@ import { ProductTabs } from "@/components/customer/ProductTabs";
 import { ProductCard } from "@/components/customer/ProductCard";
 import { ScrollRail } from "@/components/customer/ScrollRail";
 
-export function generateStaticParams() {
-  return getProducts().map((p) => ({ slug: p.slug }));
-}
+// Pages render on first visit and refresh every minute (ISR).
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
 }: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProduct(slug);
   if (!product) return {};
   const description = `${product.description} ${formatPrice(product.price)} at UNA Mart — Cash on Delivery, bKash & Nagad.`;
   return {
@@ -47,25 +41,31 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
+  const [categories, allProducts, zones] = await Promise.all([
+    getCategories(),
+    getAllProducts(),
+    request<DeliveryZone[]>("/delivery-zones", { revalidate: 60 }),
+  ]);
   const outOfStock = isOutOfStock(product);
   const lowStock = isLowStock(product);
-  const discountPct = getDiscountPercent(product);
-  const path = getCategoryPath(product.categoryId);
+  const path = product.categoryPath ?? [];
   const category = path[path.length - 1];
+  const outsideFee = zones.find((z) => z.code === "outside_dhaka")?.fee ?? 0;
+  const variants = product.variants ?? [];
 
   // Related: same leaf category first, then the same top-level category.
-  const all = getProducts().filter((p) => p.id !== product.id && !isOutOfStock(p));
-  const sameLeaf = all.filter((p) => p.categoryId === product.categoryId);
-  const topIds = path[0] ? getDescendantCategoryIds(path[0].id) : new Set<string>();
-  const sameTop = all.filter((p) => p.categoryId !== product.categoryId && topIds.has(p.categoryId));
+  const others = allProducts.filter((p) => p.id !== product.id && !isOutOfStock(p));
+  const sameLeaf = others.filter((p) => p.categoryId === product.categoryId);
+  const topIds = path[0] ? descendantIds(categories, path[0].id) : new Set<string>();
+  const sameTop = others.filter((p) => p.categoryId !== product.categoryId && topIds.has(p.categoryId));
   const related = [...sameLeaf, ...sameTop].slice(0, 8);
 
   const details: [string, string][] = [
     ["Category", path.map((c) => c.name).join(" › ") || "—"],
-    ["Product code", product.id.toUpperCase()],
+    ["Product code", variants.length === 1 ? variants[0].sku : product.slug.toUpperCase()],
     [
       "Availability",
       outOfStock ? "Out of stock" : lowStock ? `Only ${product.stockQty} left` : "In stock",
@@ -74,7 +74,7 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
       "Delivery",
       product.freeDelivery
         ? "Free delivery nationwide"
-        : `Free inside Dhaka · ${formatPrice(DELIVERY_FEE.outside_dhaka)} outside Dhaka`,
+        : `Free inside Dhaka · ${formatPrice(outsideFee)} outside Dhaka`,
     ],
     ["Returns", "7-day returns on unused items"],
   ];
@@ -128,29 +128,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             </span>
           </div>
 
-          <div className="mt-5 border-y border-neutral-200 py-5">
-            <Price
-              price={product.price}
-              originalPrice={product.originalPrice}
-              size="lg"
-              showDiscount
-            />
-            {discountPct > 0 && product.originalPrice && (
-              <p className="mt-1 text-sm font-medium text-success">
-                You save {formatPrice(product.originalPrice - product.price)}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-6">
-            <ProductPurchasePanel
-              productId={product.id}
-              productName={product.name}
-              price={product.price}
-              stockQty={product.stockQty}
-              outOfStock={outOfStock}
-            />
-          </div>
+          {/* Price, variant picker and buttons: client side, so the price
+              follows the chosen variant. */}
+          <ProductPurchasePanel productId={product.id} productName={product.name} variants={variants} />
 
           <ul className="mt-6 grid gap-3 rounded-lg border border-neutral-200 bg-neutral-0 p-4 sm:grid-cols-2">
             {[
@@ -159,9 +139,9 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
                 title: product.freeDelivery ? "Free delivery nationwide" : "Free delivery inside Dhaka",
                 text: product.freeDelivery
                   ? "1–2 days in Dhaka, 3–5 days elsewhere"
-                  : `${formatPrice(DELIVERY_FEE.outside_dhaka)} outside Dhaka · 3–5 days`,
+                  : `${formatPrice(outsideFee)} outside Dhaka · 3–5 days`,
               },
-              { icon: Banknote, title: "Cash on Delivery", text: "Or pay with bKash / Nagad" },
+              { icon: Banknote, title: "Cash on Delivery", text: "Pay in cash when it arrives" },
               { icon: RotateCcw, title: "7-day returns", text: "Unused, in original packaging" },
               { icon: ShieldCheck, title: "Genuine product", text: "Checked before dispatch" },
             ].map(({ icon: Icon, title, text }) => (

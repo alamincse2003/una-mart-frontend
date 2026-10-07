@@ -28,15 +28,15 @@ to a nullable `seller_id` — don't design further ahead than that.
 | `/products` | All products (filters, sort) | built |
 | `/category/[slug]` | Category listing (includes subcategories) | built |
 | `/search?q=` | Search results | built |
-| `/product/[slug]` | Product detail | built — needs variant picker |
+| `/product/[slug]` | Product detail + variant picker | built |
 | `/cart` | Cart | built |
-| `/checkout` | Checkout (guest allowed) | built |
-| `/order/[number]` | Order confirmation / status page | to build |
-| `/track-order` | Guest order lookup (order number + phone) | built |
+| `/checkout` | Checkout (guest allowed, OTP step when required) | built |
+| `/order/[number]` | Order confirmation / status page | covered by checkout confirmation + `/track-order` |
+| `/track-order` | Order lookup (number + phone, or own orders when logged in), cancel | built |
 | `/wishlist` | Saved items | built (local only) |
-| `/login`, `/register` | Phone + OTP auth | UI built, needs API |
-| `/account` | Profile, addresses | to build |
-| `/account/orders` | Order history, return requests | to build |
+| `/login`, `/register` | Phone + OTP auth | built |
+| `/account` | Profile, my orders, logout | built (addresses: to build) |
+| `/account/orders` | Order history, return requests | history is on `/account`; returns to build |
 | `/about`, `/contact`, `/faq`, policy pages | Content | built |
 
 ### Admin panel (protected, role: admin) — Phase 1
@@ -136,6 +136,24 @@ from published reviews), seller_id (P2), created_at, updated_at`
 
 **ProductImage** — `id, product_id, variant_id (nullable — set for
 color-specific photos), cloudinary_public_id, alt, sort_order`
+
+> **Implemented so far (una-mart-backend, Oct 2026):** User, Session,
+> OtpCode, PhoneFlag, AuditLog, Category, Product, ProductVariant,
+> ProductImage, StockMovement, DeliveryZone, Cart, CartItem, Order,
+> OrderItem, OrderStatusEvent, Payment. Endpoints under `/v1`: catalog,
+> delivery zones, cart (guest cookie or user, merged at login), COD checkout
+> with the risk rules, my orders / guest lookup / cancel, phone OTP login,
+> admin login (password + OTP), and the admin API (stats, orders +
+> transitions, products / variants / stock, categories, delivery zones,
+> phone flags, audit log). Errors use `{ statusCode, code, message }`.
+> Additions: Session has `scope` (customer | admin) — only admin-scope
+> sessions pass admin guards; Order has `phone_verified`. Deviations for
+> now: ProductImage stores a plain `url` (no Cloudinary yet); COD only
+> (bKash/Nagad return `PAYMENT_METHOD_UNAVAILABLE`); OTPs go to the API log
+> (no SMS gateway; production refuses to start like that); no order SMS.
+> Not yet: addresses, wishlist, reviews, returns/refunds, shipments,
+> uploads. The storefront and admin panel use this API since Oct 2026 (fake
+> `/api/*` removed).
 
 **StockMovement** — `id, variant_id, delta (+/-), reason (order | cancel |
 return | restock | adjustment), ref_type, ref_id, actor_id, created_at`.
@@ -321,14 +339,17 @@ refunds are paid manually via bKash/Nagad, with the reference recorded
 on the `Refund`. `payment_status` then becomes `refunded` or
 `partially_refunded`.
 
-### COD risk rules (**DECIDE** the thresholds)
+### COD risk rules (decided Oct 2026)
 
 - A phone with `is_blocked` cannot choose COD (online payment only).
-- A phone with ≥ 2 refused COD deliveries needs OTP verification or an
-  advance payment of the delivery fee.
-- COD orders above **৳X** (suggest ৳10,000) need OTP verification.
-- First-time phones get an OTP before order placement (or a confirmation
-  call — pick one).
+- A phone with ≥ 2 refused COD deliveries needs OTP verification (advance
+  payment of the delivery fee becomes the alternative once online payment
+  exists).
+- COD orders above **৳10,000** (`COD_OTP_THRESHOLD`) need OTP verification.
+- First-time phones (no earlier OTP-verified or delivered order) get an OTP
+  before order placement.
+- A logged-in customer ordering to their own verified phone needs no
+  extra OTP. OTP-verified orders are confirmed automatically.
 
 ## API surface (NestJS, Phase 1)
 
@@ -389,18 +410,15 @@ GET/PATCH  /admin/phone-flags/:phone
 GET    /admin/audit-log
 ```
 
-### Changes the frontend needs when switching to this API
+### Frontend switch to this API (done, Oct 2026)
 
-The Phase 1 fake API was shaped like v1 of this doc. Moving to v2 means:
-- money in poisha (divide by 100 in `formatPrice`);
-- paginated list responses;
-- cart items use `variantId` instead of `productId`, plus a variant picker
-  on the product page;
-- separate `status` and `payment_status` (the Track Order timeline uses the
-  new statuses);
-- `POST /orders` may return `redirect_url` (online payment);
-- `/order/[number]` confirmation page;
-- OTP login.
+Done: money in poisha (`formatPrice` divides by 100); paginated, URL-driven
+listings; cart by `variantId` with a variant picker; new order statuses on
+Track Order; OTP login and the checkout OTP step; admin on `/v1/admin/*`.
+Still open: `redirect_url` handling once online payment exists.
+Small API additions made for the storefront: list items carry `variantId`
+(cheapest active variant) and `stockQty`; `GET /products` accepts several
+comma-separated `category` slugs and `rating_min`.
 
 ## Auth and roles
 

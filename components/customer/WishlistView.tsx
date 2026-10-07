@@ -23,7 +23,7 @@ export function WishlistView() {
     }
     let cancelled = false;
     apiClient
-      .getProducts({ ids: key.split(",") })
+      .getProductsByIds(key.split(","))
       .then((found) => {
         if (!cancelled) setProducts(found);
       })

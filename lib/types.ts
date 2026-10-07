@@ -1,157 +1,201 @@
-// Shared types matching SYSTEM_DESIGN.md's data model exactly.
-// Fake data (Next.js API routes) and the future NestJS API must both
-// produce payloads shaped like these — that's what makes the swap a
-// one-line change instead of a rewrite.
+// Types the storefront works with. Shapes follow the NestJS API
+// (una-mart-backend, /docs-json); lib/adapters.ts maps API payloads into the
+// few UI-friendly shapes below (Product, Category).
+//
+// MONEY: every amount is integer poisha (৳1 = 100 poisha). Only formatPrice
+// (lib/format.ts) converts to taka for display.
 
 export type UserRole = "customer" | "admin" | "seller";
 
-export interface User {
+export interface Me {
   id: string;
-  name: string;
-  email: string;
   phone: string;
+  name: string | null;
+  email: string | null;
   role: UserRole;
-  createdAt: string;
+  /** "admin" only for sessions from the admin (password + OTP) login. */
+  scope: "customer" | "admin";
 }
 
-export type ProductStatus = "active" | "draft" | "out_of_stock";
-
 export type ProductBadge = "new" | "sale" | "best";
+
+export interface Variant {
+  id: string;
+  sku: string;
+  /** e.g. { size: "M" }; empty for simple products. */
+  options: Record<string, string>;
+  price: number;
+  compareAtPrice: number | null;
+  stockQty: number;
+}
 
 export interface Product {
   id: string;
   name: string;
   slug: string;
+  /** Empty on list items; filled on the product page. */
   description: string;
+  /** Cheapest active variant (list) or the default variant (detail). */
   price: number;
+  /** Was-price, only when discounted. */
+  originalPrice?: number;
+  /** Units across active variants. */
   stockQty: number;
   categoryId: string;
   images: string[];
-  status: ProductStatus;
-  createdAt: string;
-  sellerId?: string | null; // P2, nullable in Phase 1
-
-  // Phase 1 display fields — optional, drive storefront card/detail UI.
-  rating?: number; // 0-5
+  badge: ProductBadge | null;
+  freeDelivery: boolean;
+  rating?: number;
   reviewCount?: number;
-  originalPrice?: number; // present only when the item is discounted
-  badge?: ProductBadge | null;
-  freeDelivery?: boolean;
+  createdAt?: string;
+  /** What a card's "Add to cart" adds (cheapest active variant). */
+  defaultVariantId: string;
+  /** > 1 means the shopper must pick an option on the product page. */
+  variantCount: number;
+  /** Product page only. */
+  variants?: Variant[];
+  categoryPath?: { id: string; name: string; slug: string }[];
 }
 
 export interface Category {
   id: string;
   name: string;
   slug: string;
-  parentId?: string | null;
+  parentId: string | null;
+  imageUrl?: string | null;
 }
 
-export interface CartItem {
+export interface ProductPage {
+  items: Product[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+// ---------------------------------------------------------------------------
+// Cart — the server cart is the source of truth (prices included).
+// ---------------------------------------------------------------------------
+
+export interface CartLine {
   id: string;
+  variantId: string;
   productId: string;
+  slug: string;
+  name: string;
+  variantLabel: string;
+  imageUrl: string | null;
+  unitPrice: number;
+  compareAtPrice: number | null;
   quantity: number;
+  lineTotal: number;
+  stockQty: number;
+  freeDelivery: boolean;
+  /** Set when the line can't be ordered as-is (excluded from subtotal). */
+  issue: "unavailable" | "insufficient_stock" | null;
 }
 
 export interface Cart {
+  items: CartLine[];
+  itemCount: number;
+  subtotal: number;
+}
+
+// ---------------------------------------------------------------------------
+// Delivery + orders
+// ---------------------------------------------------------------------------
+
+export interface DeliveryZone {
   id: string;
-  items: CartItem[];
+  code: string;
+  name: string;
+  fee: number;
+  etaText: string;
 }
 
 export type OrderStatus =
-  | "pending"
-  | "paid"
+  | "awaiting_payment"
+  | "pending_confirmation"
+  | "confirmed"
+  | "processing"
   | "shipped"
   | "delivered"
+  | "delivery_failed"
+  | "returned_to_warehouse"
   | "cancelled";
 
-// NOTE: "cod" is not in SYSTEM_DESIGN.md's Order.payment_method enum yet
-// (bkash | nagad). The storefront offers Cash on Delivery, so the backend
-// schema needs it too — flagged for the NestJS Order entity.
-export type PaymentMethod = "bkash" | "nagad" | "cod";
+export type PaymentMethod = "cod" | "bkash" | "nagad" | "card";
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "partially_refunded" | "refunded";
 
-export interface Order {
-  id: string;
-  userId: string;
-  status: OrderStatus;
-  totalAmount: number;
-  paymentMethod: PaymentMethod;
-  shippingAddress: string;
-  createdAt: string;
+export interface Address {
+  line1: string;
+  area?: string;
+  city: string;
 }
 
-// Body of POST /orders. The server reads items from the session cart and
-// re-prices them — the client never sends prices it expects to be trusted.
+/** Body of POST /orders. Items come from the server cart and are re-priced there. */
 export interface CreateOrderRequest {
   customerName: string;
   phone: string;
   email?: string;
-  address: string;
-  city: string;
-  deliveryZone: "inside_dhaka" | "outside_dhaka";
+  address: Address;
+  deliveryZone: string;
   paymentMethod: PaymentMethod;
   note?: string;
-}
-
-export interface CreateOrderResponse {
-  order: Order;
-  items: OrderItem[];
-  deliveryFee: number;
+  /** Checkout OTP, after the API answered OTP_REQUIRED. */
+  otpCode?: string;
 }
 
 export interface OrderItem {
-  id: string;
-  orderId: string;
-  productId: string;
+  productName: string;
+  variantLabel: string;
+  sku: string;
+  imageUrl: string | null;
+  unitPrice: number;
   quantity: number;
-  priceAtPurchase: number;
-  sellerId?: string | null; // P2, for splitting orders across sellers
+  lineTotal: number;
 }
 
-// Admin views (GET /admin/orders). SYSTEM_DESIGN's OrderStatusEvent —
-// every status change is recorded with who made it.
-export interface OrderStatusEvent {
-  from: OrderStatus | null;
-  to: OrderStatus;
-  actor: "customer" | "admin" | "system";
-  note?: string;
-  at: string;
-}
-
-export interface AdminOrder extends Order {
+export interface CustomerOrder {
+  orderNumber: string;
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  placedAt: string;
   customerName: string;
   phone: string;
-  email?: string;
-  address: string;
-  city: string;
-  deliveryZone: CreateOrderRequest["deliveryZone"];
-  customerNote?: string;
-  deliveryFee: number;
+  email: string | null;
+  shippingAddress: Address;
+  deliveryZone: { code: string; name: string; etaText: string };
   items: OrderItem[];
-  history: OrderStatusEvent[];
+  subtotal: number;
+  discountTotal: number;
+  deliveryFee: number;
+  total: number;
+  timeline: { status: OrderStatus; at: string; note: string | null }[];
+  cancellable: boolean;
 }
 
-export interface AdminStats {
-  ordersToday: number;
-  pendingConfirmation: number;
-  revenueToday: number;
-  lowStockCount: number;
-  statusCounts: Record<OrderStatus, number>;
+export interface OrderSummary {
+  orderNumber: string;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  placedAt: string;
+  itemCount: number;
+  total: number;
+  imageUrl: string | null;
 }
 
-export interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
+export interface Page<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
-// P2, not built yet — included so migrations aren't destructive later.
-export interface Seller {
-  id: string;
-  userId: string;
-  storeName: string;
-  verificationStatus: string;
-  commissionRate: number;
+export interface OtpSent {
+  expiresInSeconds: number;
+  /** Development only (backend SMS_PROVIDER=console). */
+  devCode?: string;
 }

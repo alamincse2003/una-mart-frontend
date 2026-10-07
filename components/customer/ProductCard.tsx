@@ -108,9 +108,10 @@ export function ProductCard({
         {/* relative z-10 keeps the button above the stretched title link. */}
         <div className="relative z-10 mt-auto pt-3">
           <AddToCartButton
-            productId={product.id}
+            variantId={product.defaultVariantId}
             productName={product.name}
             disabled={outOfStock}
+            chooseOptionsHref={product.variantCount > 1 ? href : undefined}
           />
         </div>
       </div>

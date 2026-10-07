@@ -35,31 +35,25 @@ If a task seems to call for one of these, ask first rather than adding it.
   so a new provider can be added without touching order logic
 - Hosting: Vercel (frontend), Railway or Render (backend + DB)
 
-## Frontend-first workflow
+## Data access (real API since Oct 2026)
 
-Right now the frontend is being built against fake data, not the real
-backend. Rules for this phase:
+The storefront and admin use the NestJS API (`una-mart-backend`, `/v1`).
+There is no fake data any more. Rules:
 
-- Fake data must live behind Next.js API routes (e.g.
-  `/app/api/products/route.ts`), never hardcoded directly inside components.
-- Client components (anything `"use client"`, e.g. cart actions) call
-  `/api/*` through `lib/api-client.ts`, not a local import — this is what
-  lets us swap fake data for the real NestJS API later by editing only
-  `api-client.ts`'s base URL, not the components.
-- Server components (pages doing SSR data fetching, e.g. the homepage,
-  category page, product page) import the data helpers from
-  `lib/fake-data.ts` directly (`getProducts`, `getCategories`,
-  `getProductBySlug`) instead of going through `api-client.ts`. A server
-  component calling its own `/api/*` route via HTTP is a self-fetch that
-  Vercel's deployment protection (and similar edge auth) can 401 — importing
-  the data functions directly avoids that request entirely. When the real
-  backend is ready, these call sites switch from the `fake-data` import to
-  an authenticated server-side fetch to the NestJS API — expect to touch
-  each server component, not just one config value.
-- Fake data shape must match `SYSTEM_DESIGN.md`'s data model exactly, so the
-  swap to the real API stays a small, mechanical change per call site.
-- Cart, login, and checkout state must be real (React state/context), not
-  static mockups — only the data source is fake, the behavior is not.
+- Components never call `fetch` directly. Server components use
+  `lib/catalog.ts` (cached, ISR 60 s); client components use
+  `lib/api-client.ts` (storefront) or `lib/admin-api-client.ts` (admin).
+  All of them go through `lib/http.ts`.
+- API payloads are mapped to UI shapes in `lib/adapters.ts`; keep API field
+  names out of components where an adapter already exists.
+- Money is integer poisha everywhere; only `formatPrice` converts to taka.
+- Business rules (prices, stock, COD risk, permissions) live in the API.
+  The frontend shows previews and handles the API's error `code`s
+  (`OUT_OF_STOCK`, `OTP_REQUIRED`, …); it never decides them.
+- The admin UI redirects to `/admin/login`, but protection is the API's
+  admin guard — never rely on a hidden route.
+- Running locally needs the backend up (`npm run db:up` + `npm run
+  start:dev` in `una-mart-backend`); `npm run build` needs it too.
 
 ## Animation rules (GSAP)
 

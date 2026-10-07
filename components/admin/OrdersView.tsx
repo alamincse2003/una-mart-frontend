@@ -3,57 +3,81 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inbox, Search } from "lucide-react";
+import { BadgeCheck, Inbox, Search } from "lucide-react";
 import { adminApi } from "@/lib/admin-api-client";
 import { formatPrice } from "@/lib/format";
-import { PAYMENT_METHOD_LABELS } from "@/lib/site";
 import type { OrderStatus } from "@/lib/types";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AdminPageHeader } from "./AdminPageHeader";
-import { formatDateTime } from "./format";
+import { formatDateTime, localPhone } from "./format";
 import { ORDER_STATUS_LABELS, OrderStatusBadge } from "./order-status";
 import { useAdminQuery } from "./useAdminQuery";
 
-const TABS: (OrderStatus | "all")[] = ["all", "pending", "paid", "shipped", "delivered", "cancelled"];
+const TABS: (OrderStatus | "all")[] = [
+  "all",
+  "pending_confirmation",
+  "confirmed",
+  "processing",
+  "shipped",
+  "delivered",
+  "delivery_failed",
+  "cancelled",
+];
+const PAGE_SIZE = 25;
 
-export function OrdersView() {
+export function OrdersView({ initialStatus }: { initialStatus?: OrderStatus }) {
   const router = useRouter();
-  const [status, setStatus] = useState<OrderStatus | "all">("all");
+  const [status, setStatus] = useState<OrderStatus | "all">(initialStatus ?? "all");
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
 
   // Debounce the search box so typing doesn't fire a request per key.
   useEffect(() => {
-    const timer = setTimeout(() => setQ(search.trim()), 250);
+    const timer = setTimeout(() => {
+      setQ(search.trim());
+      setPage(1);
+    }, 250);
     return () => clearTimeout(timer);
   }, [search]);
 
   const stats = useAdminQuery(() => adminApi.getStats());
   const orders = useAdminQuery(
-    () => adminApi.listOrders({ status: status === "all" ? undefined : status, q: q || undefined }),
-    `${status}|${q}`
+    () =>
+      adminApi.listOrders({
+        status: status === "all" ? undefined : status,
+        q: q || undefined,
+        page,
+        pageSize: PAGE_SIZE,
+      }),
+    `${status}|${q}|${page}`
   );
 
   const counts = stats.data?.statusCounts;
-  const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : undefined;
+  const total = counts ? Object.values(counts).reduce((a, b) => a + (b ?? 0), 0) : undefined;
+  const data = orders.data;
 
   return (
     <div className="flex flex-col gap-6">
-      <AdminPageHeader title="Orders" description="Confirm, ship and track every order." />
+      <AdminPageHeader title="Orders" description="Confirm, pack, ship and track every order." />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div role="tablist" aria-label="Order status" className="flex gap-1 overflow-x-auto rounded-pill bg-neutral-100 p-1">
           {TABS.map((tab) => {
             const active = tab === status;
-            const count = tab === "all" ? total : counts?.[tab];
+            const count = tab === "all" ? total : (counts?.[tab] ?? 0);
             return (
               <button
                 key={tab}
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setStatus(tab)}
+                onClick={() => {
+                  setStatus(tab);
+                  setPage(1);
+                }}
                 className={`flex shrink-0 items-center gap-1.5 rounded-pill px-3.5 py-1.5 text-sm font-semibold transition-colors ${
                   active ? "bg-neutral-0 text-navy-800 shadow-sm" : "text-neutral-600 hover:text-neutral-800"
                 }`}
@@ -85,7 +109,7 @@ export function OrdersView() {
       <Card className="overflow-hidden">
         {orders.error ? (
           <p role="alert" className="p-6 text-sm font-medium text-danger">{orders.error}</p>
-        ) : orders.data && orders.data.length === 0 ? (
+        ) : data && data.items.length === 0 ? (
           <EmptyState
             icon={Inbox}
             title="No orders here"
@@ -100,42 +124,47 @@ export function OrdersView() {
                   <th className="px-5 py-3">Placed</th>
                   <th className="px-5 py-3">Customer</th>
                   <th className="px-5 py-3 text-right">Total</th>
-                  <th className="px-5 py-3">Payment</th>
+                  <th className="px-5 py-3">Area</th>
                   <th className="px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {(orders.data ?? []).map((order) => (
+                {(data?.items ?? []).map((order) => (
                   <tr
-                    key={order.id}
-                    onClick={() => router.push(`/admin/orders/${order.id}`)}
+                    key={order.orderNumber}
+                    onClick={() => router.push(`/admin/orders/${order.orderNumber}`)}
                     className="cursor-pointer transition-colors hover:bg-neutral-50"
                   >
                     <td className="px-5 py-3.5">
                       <Link
-                        href={`/admin/orders/${order.id}`}
+                        href={`/admin/orders/${order.orderNumber}`}
                         onClick={(e) => e.stopPropagation()}
                         className="font-mono font-bold text-navy-800 hover:underline"
                       >
-                        {order.id}
+                        {order.orderNumber}
                       </Link>
                       <span className="block text-xs text-neutral-500">
-                        {order.items.reduce((n, i) => n + i.quantity, 0)} items
+                        {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(order.createdAt)}</td>
+                    <td className="whitespace-nowrap px-5 py-3.5 text-neutral-600">{formatDateTime(order.placedAt)}</td>
                     <td className="px-5 py-3.5">
                       <span className="block font-medium text-neutral-800">{order.customerName}</span>
-                      <span className="block text-xs text-neutral-500">{order.phone} · {order.city}</span>
+                      <span className="flex items-center gap-1 text-xs text-neutral-500">
+                        {localPhone(order.phone)}
+                        {order.phoneVerified && (
+                          <BadgeCheck aria-label="Phone verified" width={13} height={13} className="text-success" />
+                        )}
+                      </span>
                     </td>
                     <td className="px-5 py-3.5 text-right font-semibold tabular-nums text-neutral-800">
-                      {formatPrice(order.totalAmount)}
+                      {formatPrice(order.total)}
                     </td>
-                    <td className="px-5 py-3.5 text-neutral-600">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</td>
+                    <td className="px-5 py-3.5 text-neutral-600">{order.deliveryZone}</td>
                     <td className="px-5 py-3.5"><OrderStatusBadge status={order.status} /></td>
                   </tr>
                 ))}
-                {orders.loading && !orders.data && (
+                {orders.loading && !data && (
                   <tr><td colSpan={6} className="px-5 py-10 text-center text-neutral-500">Loading orders…</td></tr>
                 )}
               </tbody>
@@ -143,6 +172,20 @@ export function OrdersView() {
           </div>
         )}
       </Card>
+
+      {data && data.totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            Previous
+          </Button>
+          <span className="text-neutral-600">
+            Page {data.page} of {data.totalPages} · {data.total} orders
+          </span>
+          <Button variant="secondary" size="sm" disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)}>
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

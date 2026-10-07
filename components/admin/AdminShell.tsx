@@ -1,24 +1,29 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ExternalLink,
   FolderTree,
   LayoutDashboard,
+  LogOut,
   Menu,
   Package,
-  ShieldAlert,
+  Settings,
   ShoppingBag,
 } from "lucide-react";
+import { adminApi } from "@/lib/admin-api-client";
+import type { Me } from "@/lib/types";
 import { Drawer } from "@/components/ui/Drawer";
+import { localPhone } from "./format";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -48,8 +53,41 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+// The real protection is on the API (admin role + admin-scope session on
+// every /admin route). This guard only keeps the UI from showing an empty
+// shell to someone who isn't logged in as admin.
 export function AdminShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const isLogin = pathname === "/admin/login";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [admin, setAdmin] = useState<Me | null>(null);
+
+  useEffect(() => {
+    if (isLogin) return;
+    adminApi
+      .me()
+      .then((me) => {
+        if (me.role === "admin" && me.scope === "admin") setAdmin(me);
+        else throw new Error("not admin");
+      })
+      .catch(() => router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`));
+  }, [isLogin, pathname, router]);
+
+  if (isLogin) return <div className="min-h-screen bg-neutral-50">{children}</div>;
+
+  if (!admin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-50" aria-busy="true">
+        <p className="text-sm text-neutral-500">Checking your admin session…</p>
+      </div>
+    );
+  }
+
+  async function logout() {
+    await adminApi.logout().catch(() => undefined);
+    router.replace("/admin/login");
+  }
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
@@ -85,13 +123,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Menu aria-hidden width={20} height={20} />
           </button>
           <span className="font-bold text-navy-800 lg:hidden">Admin</span>
-          <span
-            className="ml-auto inline-flex items-center gap-1.5 rounded-pill bg-warning-bg px-3 py-1 text-xs font-semibold text-warning"
-            title="No login yet — hidden in production unless ADMIN_PREVIEW=1. Data resets when the server restarts."
-          >
-            <ShieldAlert aria-hidden width={14} height={14} />
-            Preview · not protected
+          <span className="ml-auto hidden text-sm text-neutral-600 sm:inline">
+            {admin.name ?? localPhone(admin.phone)}
           </span>
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 max-sm:ml-auto"
+          >
+            <LogOut aria-hidden width={15} height={15} />
+            Log out
+          </button>
         </header>
 
         <main id="main" className="flex-1 px-4 py-6 sm:px-6 sm:py-8">

@@ -16,6 +16,7 @@ import { useToast } from "./toast-context";
 // GET/POST/DELETE /wishlist), only this provider changes: load from the
 // API for signed-in users and merge the local ids on login.
 const STORAGE_KEY = "una_mart_wishlist";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface WishlistContextValue {
   ids: string[];
@@ -39,8 +40,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       const saved = JSON.parse(
         window.localStorage.getItem(STORAGE_KEY) ?? "[]"
       ) as unknown;
+      // Product ids are UUIDs; drops ids saved by the old fake catalog ("p1").
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time hydrate from storage
-      if (Array.isArray(saved)) setIds(saved.filter((id) => typeof id === "string"));
+      if (Array.isArray(saved)) setIds(saved.filter((id) => typeof id === "string" && UUID.test(id)));
     } catch {
       // Ignore corrupt storage.
     }

@@ -1,48 +1,53 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getCategories,
-  getCategoryBySlug,
-  getCategoryPath,
-  getProducts,
-} from "@/lib/fake-data";
+import { categoryPath, getCategories, getPriceBounds, getProducts } from "@/lib/catalog";
+import { listingQuery, parseListing } from "@/lib/listing";
 import { breadcrumbJsonLd, JsonLd } from "@/lib/seo";
 import { PageBanner } from "@/components/customer/PageBanner";
 import { ProductListingPage } from "@/components/customer/ProductListingPage";
 
-export function generateStaticParams() {
-  return getCategories().map((c) => ({ slug: c.slug }));
+async function findCategory(slug: string) {
+  const categories = await getCategories();
+  const category = categories.find((c) => c.slug === slug);
+  return category ? { category, categories, path: categoryPath(categories, category.id) } : null;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/category/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
-  if (!category) return {};
-  const path = getCategoryPath(category.id);
+  const found = await findCategory(slug);
+  if (!found) return {};
+  const { category, path } = found;
   // "Summer" alone is ambiguous — title subcategories with their parent.
   const name =
     path.length > 1 ? `${category.name} — ${path[path.length - 2].name}` : category.name;
   return {
     title: `Shop ${name} Online`,
-    description: `Buy ${name.toLowerCase()} online in Bangladesh at UNA Mart. Cash on Delivery, bKash & Nagad, free delivery inside Dhaka.`,
+    description: `Buy ${name.toLowerCase()} online in Bangladesh at UNA Mart. Cash on Delivery, free delivery inside Dhaka.`,
     alternates: { canonical: `/category/${slug}` },
   };
 }
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: PageProps<"/category/[slug]">) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
-  if (!category) notFound();
+  const found = await findCategory(slug);
+  if (!found) notFound();
+  const { category, categories, path } = found;
 
-  const categories = getCategories();
-  const products = getProducts({ category: slug });
-  const path = getCategoryPath(category.id);
+  const listing = parseListing(await searchParams);
   const children = categories.filter((c) => c.parentId === category.id);
+  // Only this category's own subcategories can narrow it.
+  listing.filters.categorySlugs = listing.filters.categorySlugs.filter((s) => children.some((c) => c.slug === s));
+
+  const [results, priceBounds] = await Promise.all([
+    getProducts(listingQuery(listing, { category: [slug] })),
+    getPriceBounds({ category: [slug] }),
+  ]);
   const crumbs = path.map((c) => ({ label: c.name, href: `/category/${c.slug}` }));
 
   return (
@@ -53,7 +58,7 @@ export default async function CategoryPage({
       <PageBanner
         title={category.name}
         breadcrumbs={crumbs}
-        description={`${products.length} ${products.length === 1 ? "product" : "products"} · Cash on Delivery available`}
+        description={`${results.total} ${results.total === 1 ? "product" : "products"} · Cash on Delivery available`}
       >
         {children.length > 0 && (
           <nav aria-label={`${category.name} subcategories`} className="mt-5">
@@ -75,9 +80,11 @@ export default async function CategoryPage({
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <ProductListingPage
-          products={products}
-          categories={categories}
+          results={results}
+          filters={listing.filters}
+          sort={listing.sort}
           categoryOptions={children}
+          priceBounds={priceBounds}
         />
       </section>
     </>

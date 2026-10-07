@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import { ToastProvider } from "@/lib/toast-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
@@ -46,7 +47,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ToastProvider>
           <CartProvider>
-            <WishlistProvider>{children}</WishlistProvider>
+            <AuthProvider>
+              <WishlistProvider>{children}</WishlistProvider>
+            </AuthProvider>
           </CartProvider>
         </ToastProvider>
       </body>
