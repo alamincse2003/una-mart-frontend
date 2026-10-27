@@ -12,7 +12,7 @@ WHAT it is (pages, data, API).
 | Animation | GSAP | Marketing sections only — see CLAUDE.md rules |
 | Backend | Node.js + NestJS, TypeScript | Structured (modules/controllers/services), same language as frontend |
 | ORM / migrations | Prisma | Most common with NestJS, best docs and migrations, atomic stock updates |
-| Database | PostgreSQL (managed: Railway or Neon) | Relational data (sellers→products→orders) fits marketplace shape |
+| Database | PostgreSQL 17 in Docker on the VPS (D11) | Relational data (sellers→products→orders) fits marketplace shape |
 | Cache/session | **None at launch** — Postgres holds carts and sessions | See decision D2; add Redis only on a measured need |
 | Search | Postgres full-text + `pg_trgm` | Typo-tolerant, free, enough for thousands of products |
 | Images | Cloudinary (signed uploads from admin) | CDN-served, automatic resizing/WebP |
@@ -20,7 +20,7 @@ WHAT it is (pages, data, API).
 | Delivery | One courier API (Steadfast or Pathao) behind an interface | See decision D6 |
 | SMS | Local SMS gateway (OTP + order notifications) | Phone-first auth, Bangladesh market |
 | Monitoring | Sentry (web + api) | Errors surface before customers report them |
-| Hosting | Vercel (frontend), Railway/Render (API + Postgres) | Low ops overhead for a two-person team |
+| Hosting | One VPS (Singapore) running Docker Compose: Caddy, web, api, db — see D11 and `una-mart-backend/deploy/VPS_GUIDE.md` | Founders' call: lower cost, full control |
 
 ## Decisions
 
@@ -32,13 +32,14 @@ add a new entry that supersedes it — don't silently edit.
 | D1 | **Prisma** for ORM and migrations | Best NestJS docs, safe migrations, type-safe queries; conditional `updateMany` handles the stock race | Hot paths need raw SQL (use `$queryRaw` there, keep Prisma) |
 | D2 | **No Redis at launch** | Postgres easily handles carts, sessions and rate-limit counters at our scale; one less service to run and pay for | p95 API latency or DB load shows a measured need |
 | D3 | **Phone + OTP auth**, optional password later; admins need OTP + password | How Bangladeshi shoppers expect to log in; verifies phones, which cuts fake COD orders | — |
-| D4 | **Server-side sessions** in Postgres via an httpOnly, `Secure`, `SameSite=Lax` cookie; API on `api.unamartbd.com` | Instantly revocable, no token juggling in JS; the shared parent domain keeps cookies first-party between Vercel and Railway | A native mobile app (add token auth alongside) |
+| D4 | **Server-side sessions** in Postgres via an httpOnly, `Secure`, `SameSite=Lax` cookie; API on `api.unamartbd.com` | Instantly revocable, no token juggling in JS; the shared parent domain keeps cookies first-party between the storefront and the API | A native mobile app (add token auth alongside) |
 | D5 | **COD + one payment aggregator** first; direct bKash/Nagad later | One integration covers bKash, Nagad and cards with faster approval; the `PaymentProvider` interface makes switching a new adapter, not a rewrite | Online volume makes direct-API fees worth it — **DECIDE** after fee quotes |
 | D6 | **One courier** at launch behind a `CourierProvider` interface | Steadfast and Pathao both offer APIs and COD settlement; one is enough to launch | Coverage or rates require a second — **DECIDE** courier after rate quotes |
 | D7 | **Money as integer poisha**, UUID ids, UTC timestamps, E.164 phones | Avoids float rounding, guessable ids, timezone and phone-format bugs | — |
 | D8 | **OpenAPI** generated from NestJS → typed client generated for the web app | Frontend and backend types can't drift; replaces hand-written `lib/types.ts` | — |
 | D9 | **Monorepo** (`apps/web`, `apps/api`) with pnpm workspaces, no Turborepo yet — **superseded by D10** | One PR can change API and UI together | CI builds get slow |
-| D10 | **Two repos**: `una-mart-frontend` (Next.js, Vercel) and `una-mart-backend` (NestJS, Railway/Render), npm in both | Founders' call (Oct 2026): keeps the deployed frontend repo and Vercel setup untouched while the API is built | Keeping API types in sync by hand gets painful — then generate the OpenAPI client (D8) into the frontend, or revisit a monorepo |
+| D10 | **Two repos**: `una-mart-frontend` (Next.js) and `una-mart-backend` (NestJS), npm in both | Founders' call (Oct 2026): keeps the deployed frontend repo and Vercel setup untouched while the API is built | Keeping API types in sync by hand gets painful — then generate the OpenAPI client (D8) into the frontend, or revisit a monorepo |
+| D11 | **Self-hosted VPS** (Ubuntu 24.04, Singapore) with Docker Compose: Caddy (auto HTTPS) → `web` + `api` → `db`. GitHub Actions tests, builds images to ghcr.io and deploys over SSH (`deploy.sh`: backup → migrate → health check → automatic rollback). **Supersedes** Vercel/Railway/managed Postgres in the stack table and D4's wording. | Founders' call (Oct 2026): roughly half the monthly cost and full control; the team accepts the ops work (patching, backups, monitoring), documented in `VPS_GUIDE.md` | Ops work keeps slipping, traffic outgrows one server, or uptime needs exceed what one machine can give — move the database to a managed service first |
 
 ## Repo layout
 
@@ -184,13 +185,24 @@ Next step: replace hand-written types with the client generated from
 
 ## Deployment
 
-- `web` → Vercel, auto-deploy from `main`; preview deploys per PR.
-- `api` → Railway/Render, auto-deploy from `main`; `prisma migrate deploy`
-  runs before the new version starts.
-- PostgreSQL → managed, **daily backups on, and one tested restore before
-  launch**.
-- Two environments: `staging` (provider sandboxes, test SMS) and
-  `production`. Provider keys are never shared between them.
+Full runbook: `una-mart-backend/deploy/VPS_GUIDE.md` (server setup,
+security, DNS, backups, monitoring, troubleshooting).
+
+- Push to `main` in either repo → GitHub Actions runs the tests, builds a
+  Docker image (`ghcr.io/<owner>/una-mart-web` / `una-mart-api`, tagged
+  with the commit SHA) and runs `deploy.sh` on the server over SSH. Pull
+  requests only run the tests.
+- `deploy.sh`: (api) backup → `prisma migrate deploy`; start the new
+  container; wait for its health check; **roll back automatically** if it
+  doesn't become healthy. Migrations must stay backward compatible.
+- The frontend image builds without the API: storefront pages render per
+  request (`connection()` in the customer layout) and cache API data for
+  60 s, instead of prerendering catalog data at build time.
+- PostgreSQL → container on the VPS, nightly backups (14 days on the
+  server + rclone offsite), **one tested restore before launch**.
+- `APP_ENV=staging` (API) / `NEXT_PUBLIC_APP_ENV=staging` (web) = the
+  private preview before launch: console SMS allowed, not indexed, preview
+  banner. The public shop runs with both unset/`production`.
 
 ## Security and operations baseline (before launch)
 

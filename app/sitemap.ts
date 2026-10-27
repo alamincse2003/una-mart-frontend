@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { connection } from "next/server";
 import { getAllProducts, getCategories } from "@/lib/catalog";
 import { SITE_URL } from "@/lib/site";
 
@@ -7,6 +8,7 @@ export const revalidate = 3600;
 const absolute = (src: string) => (src.startsWith("http") ? src : `${SITE_URL}${src}`);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  await connection(); // built on request (see app/(customer)/layout.tsx), cached via revalidate
   const staticPaths = [
     "",
     "/products",

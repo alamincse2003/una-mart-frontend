@@ -5,12 +5,14 @@ export const SITE_TAGLINE = "Everything you need, in one place.";
 export const SITE_DESCRIPTION =
   "Shop gadgets, fashion, accessories and sports gear online in Bangladesh. Cash on Delivery, bKash and Nagad accepted, with delivery nationwide.";
 
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000")
-).replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+
+/**
+ * Private preview on the real server before launch: hidden from search
+ * engines and labelled on every page. Set NEXT_PUBLIC_APP_ENV=staging at
+ * build time; anything else is the public shop.
+ */
+export const IS_STAGING = process.env.NEXT_PUBLIC_APP_ENV === "staging";
 
 export const SUPPORT_PHONE = "+880 1927-967894";
 export const SUPPORT_PHONE_HREF = `tel:${SUPPORT_PHONE.replace(/[\s-]/g, "")}`;

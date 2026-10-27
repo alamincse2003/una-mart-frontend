@@ -33,7 +33,9 @@ If a task seems to call for one of these, ask first rather than adding it.
 - Payments (Bangladesh): Cash on Delivery + one aggregator at launch,
   direct bKash/Nagad later (ARCHITECTURE.md D5) — build the payment layer
   so a new provider can be added without touching order logic
-- Hosting: Vercel (frontend), Railway or Render (backend + DB)
+- Hosting: one VPS with Docker Compose (Caddy, web, api, Postgres), deployed
+  by GitHub Actions — see ARCHITECTURE.md D11 and
+  una-mart-backend/deploy/VPS_GUIDE.md
 
 ## Data access (real API since Oct 2026)
 

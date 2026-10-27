@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getAllProducts, getCategories } from "@/lib/catalog";
 import { Header } from "@/components/customer/Header";
 import { Footer } from "@/components/customer/Footer";
@@ -11,6 +12,11 @@ export default async function CustomerLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Render storefront pages per request, never at build time: the Docker
+  // image must build without reaching the API, and must not bake in catalog
+  // data. API responses are still cached for CATALOG_REVALIDATE seconds
+  // (lib/catalog.ts), so this costs one cheap render, not extra API calls.
+  await connection();
   const [categories, products] = await Promise.all([getCategories(), getAllProducts()]);
 
   // The mega menu only needs a handful of names per category — send that,

@@ -4,7 +4,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import { ToastProvider } from "@/lib/toast-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
+import { IS_STAGING, SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +32,7 @@ export const metadata: Metadata = {
     images: [{ url: "/products/unamart-banner/banner1.webp", width: 1672, height: 941 }],
   },
   twitter: { card: "summary_large_image" },
+  ...(IS_STAGING ? { robots: { index: false, follow: false } } : {}),
 };
 
 export const viewport: Viewport = {
@@ -45,6 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {IS_STAGING && (
+          <div role="note" className="bg-warning-bg px-4 py-1.5 text-center text-xs font-semibold text-warning">
+            Preview site — orders placed here are tests and will not be delivered.
+          </div>
+        )}
         <ToastProvider>
           <CartProvider>
             <AuthProvider>
