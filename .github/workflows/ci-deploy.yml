@@ -6,8 +6,8 @@
 #
 # The server files (compose, Caddy, deploy.sh) live in una-mart-backend/deploy.
 # Repository variables (Settings → Secrets and variables → Actions → Variables):
-#   NEXT_PUBLIC_API_URL   https://api.unamartbd.com/v1
-#   NEXT_PUBLIC_SITE_URL  https://www.unamartbd.com
+#   NEXT_PUBLIC_API_URL   https://api.unamart.online/v1
+#   NEXT_PUBLIC_SITE_URL  https://www.unamart.online
 #   NEXT_PUBLIC_APP_ENV   staging   (empty for the public shop)
 #   DEPLOY_ENABLED        true      (after the server is set up)
 # Secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY.
@@ -31,8 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # The build must not need a running API (storefront pages render per request).
-      NEXT_PUBLIC_API_URL: https://api.unamartbd.com/v1
-      NEXT_PUBLIC_SITE_URL: https://www.unamartbd.com
+      NEXT_PUBLIC_API_URL: https://api.unamart.online/v1
+      NEXT_PUBLIC_SITE_URL: https://www.unamart.online
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4

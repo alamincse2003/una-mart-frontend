@@ -28,7 +28,7 @@ Shopper's browser ──┤ storefront pages      admin pages (/admin)      │
   (`credentials: "include"`). It does not go through a Next.js proxy, because
   then every shopper would look like the same IP to the API's rate limits.
   The web site and the API must be **same-site** (`localhost:3000` ↔
-  `localhost:4000`; later `unamartbd.com` ↔ `api.unamartbd.com`) so the
+  `localhost:4000`; later `unamart.online` ↔ `api.unamart.online`) so the
   `SameSite=Lax` cookies are sent.
 - **Money is integer poisha everywhere** (৳1 = 100 poisha). Only
   `formatPrice()` in `lib/format.ts` turns it into "৳2,450". Price inputs in
@@ -290,7 +290,7 @@ other devices yet.
 ```
 NEXT_PUBLIC_API_URL=http://localhost:4000/v1
 # API_URL=            optional private URL for server components
-# NEXT_PUBLIC_SITE_URL=https://www.unamartbd.com
+# NEXT_PUBLIC_SITE_URL=https://www.unamart.online
 ```
 
 The backend's `WEB_ORIGIN` must include this site's address

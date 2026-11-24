@@ -32,7 +32,7 @@ add a new entry that supersedes it — don't silently edit.
 | D1 | **Prisma** for ORM and migrations | Best NestJS docs, safe migrations, type-safe queries; conditional `updateMany` handles the stock race | Hot paths need raw SQL (use `$queryRaw` there, keep Prisma) |
 | D2 | **No Redis at launch** | Postgres easily handles carts, sessions and rate-limit counters at our scale; one less service to run and pay for | p95 API latency or DB load shows a measured need |
 | D3 | **Phone + OTP auth**, optional password later; admins need OTP + password | How Bangladeshi shoppers expect to log in; verifies phones, which cuts fake COD orders | — |
-| D4 | **Server-side sessions** in Postgres via an httpOnly, `Secure`, `SameSite=Lax` cookie; API on `api.unamartbd.com` | Instantly revocable, no token juggling in JS; the shared parent domain keeps cookies first-party between the storefront and the API | A native mobile app (add token auth alongside) |
+| D4 | **Server-side sessions** in Postgres via an httpOnly, `Secure`, `SameSite=Lax` cookie; API on `api.unamart.online` | Instantly revocable, no token juggling in JS; the shared parent domain keeps cookies first-party between the storefront and the API | A native mobile app (add token auth alongside) |
 | D5 | **COD + one payment aggregator** first; direct bKash/Nagad later | One integration covers bKash, Nagad and cards with faster approval; the `PaymentProvider` interface makes switching a new adapter, not a rewrite | Online volume makes direct-API fees worth it — **DECIDE** after fee quotes |
 | D6 | **One courier** at launch behind a `CourierProvider` interface | Steadfast and Pathao both offer APIs and COD settlement; one is enough to launch | Coverage or rates require a second — **DECIDE** courier after rate quotes |
 | D7 | **Money as integer poisha**, UUID ids, UTC timestamps, E.164 phones | Avoids float rounding, guessable ids, timezone and phone-format bugs | — |
@@ -156,7 +156,7 @@ Admin pages → admin-api-client.ts ──┘   (browser → API directly, with 
 The browser calls the API directly with `credentials: "include"` (D4), not
 through a Next.js proxy: a proxy would make every shopper share one IP in
 the API's rate limits. Web and API must be same-site (localhost:3000 ↔
-:4000; unamartbd.com ↔ api.unamartbd.com) for the `SameSite=Lax` cookies.
+:4000; unamart.online ↔ api.unamart.online) for the `SameSite=Lax` cookies.
 `npm run build` needs the API running (pages are pre-rendered from it).
 Next step: replace hand-written types with the client generated from
 `/docs-json` (D8).
